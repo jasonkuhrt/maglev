@@ -35,6 +35,10 @@ body {
     --shadow-4: none;
     --shadow-5: none;
     --shadow-6: none;
+
+    /* Letter spacing for uppercase text (body text, not headings) */
+    --letter-spacing-normal: 0.05em;
+    --letter-spacing-wide: 0.1em;
 }
 
 /**

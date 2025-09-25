@@ -1,20 +1,62 @@
 import { settings } from '#data/mock'
-import { Box, Button, Container, Flex, Heading, Link as RadixLink, Select, Text, TextField } from '@radix-ui/themes'
+import { Container, Flex, Link as RadixLink, Select, Text, TextField } from '@radix-ui/themes'
+import { Ef, Op } from '#deps/effect'
+import * as NodeFileSystem from '@effect/platform-node/NodeFileSystem'
+import { Config } from '#lib/config'
+import type { Route } from './+types/settings'
+import { HeadingPage } from '#components/heading-page'
+import { TextLabel } from '#components/text-label'
+import { ButtonAction } from '#components/button-action'
+import { BoxPanel } from '#components/box-panel'
 
-export default function Settings() {
+export const loader = async () => {
+  const result = await Ef.runPromise(
+    Config.ConfigService.pipe(
+      Ef.andThen((service) => service.read),
+      Ef.provide(Config.ConfigServiceLive),
+      Ef.provide(NodeFileSystem.layer),
+      Ef.option,
+    ),
+  )
+
+  return {
+    gelDsn: Op.match(result, {
+      onNone: () => '',
+      onSome: (config) => config.gelDsn,
+    }),
+  }
+}
+
+export const action = async ({ request }: Route.ActionArgs) => {
+  const formData = await request.formData()
+  const gelDsn = formData.get('gelDsn') as string
+
+  await Ef.runPromise(
+    Config.ConfigService.pipe(
+      Ef.andThen((service) => service.write(Config.Config.make({ gelDsn }))),
+      Ef.provide(Config.ConfigServiceLive),
+      Ef.provide(NodeFileSystem.layer),
+    ),
+  )
+
+  return { success: true }
+}
+
+export default function Settings({ loaderData }: Route.ComponentProps) {
   return (
     <Container size='2' p='6'>
-      <Heading size='8' mb='6' style={{ textTransform: 'uppercase', letterSpacing: '0.05em', fontWeight: 'bold' }}>
+      <HeadingPage mb='6'>
         Settings
-      </Heading>
+      </HeadingPage>
 
       <Flex direction='column' gap='4'>
-        <Box p='4' style={{ border: '1px solid black' }}>
-          <Flex direction='column' gap='4'>
+        <BoxPanel p='4'>
+          <Flex direction='column' gap='4' asChild>
+            <form method='post'>
             <Flex direction='column' gap='2'>
-              <Text size='1' weight='bold' as='label' style={{ textTransform: 'uppercase', letterSpacing: '0.1em' }}>
+              <TextLabel as='label'>
                 Railway API Token
-              </Text>
+              </TextLabel>
               <TextField.Root
                 placeholder='Enter your Railway API token'
                 defaultValue={settings.railwayApiToken}
@@ -24,7 +66,7 @@ export default function Settings() {
                 <RadixLink
                   href='https://railway.com/account/tokens'
                   target='_blank'
-                  style={{ color: 'black', textDecoration: 'underline' }}
+                  style={{ color: 'var(--gray-12)', textDecoration: 'underline' }}
                 >
                   Railway Settings
                 </RadixLink>
@@ -32,9 +74,23 @@ export default function Settings() {
             </Flex>
 
             <Flex direction='column' gap='2'>
-              <Text size='1' weight='bold' as='label' style={{ textTransform: 'uppercase', letterSpacing: '0.1em' }}>
-                Theme
+              <TextLabel as='label'>
+                Gel DSN
+              </TextLabel>
+              <TextField.Root
+                name='gelDsn'
+                placeholder='edgedb://...'
+                defaultValue={loaderData?.gelDsn}
+              />
+              <Text size='1'>
+                EdgeDB connection string for data persistence
               </Text>
+            </Flex>
+
+            <Flex direction='column' gap='2'>
+              <TextLabel as='label'>
+                Theme
+              </TextLabel>
               <Select.Root defaultValue={settings.theme}>
                 <Select.Trigger />
                 <Select.Content>
@@ -45,19 +101,12 @@ export default function Settings() {
               </Select.Root>
             </Flex>
 
-            <Button
-              variant='outline'
-              size='2'
-              style={{
-                textTransform: 'uppercase',
-                letterSpacing: '0.1em',
-                fontWeight: 'bold',
-              }}
-            >
+            <ButtonAction type='submit' size='2'>
               Save Settings
-            </Button>
+            </ButtonAction>
+            </form>
           </Flex>
-        </Box>
+        </BoxPanel>
       </Flex>
     </Container>
   )

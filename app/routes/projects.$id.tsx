@@ -1,6 +1,11 @@
 import { projects } from '#data/mock'
-import { Box, Button, Container, Flex, Heading, Link as RadixLink, Text } from '@radix-ui/themes'
-import { Link, useParams } from 'react-router'
+import { Box, Container, Flex, Text, Link as RadixLink } from '@radix-ui/themes'
+import { useParams } from 'react-router'
+import { HeadingPage } from '#components/heading-page'
+import { Link } from '#components/link'
+import { TextLabel } from '#components/text-label'
+import { ButtonAction } from '#components/button-action'
+import { BoxPanel } from '#components/box-panel'
 
 export default function ProjectDetail() {
   const { id } = useParams()
@@ -9,9 +14,9 @@ export default function ProjectDetail() {
   if (!project) {
     return (
       <Container size='3' p='6'>
-        <Heading size='8' style={{ textTransform: 'uppercase', letterSpacing: '0.05em', fontWeight: 'bold' }}>
+        <HeadingPage>
           Project not found
-        </Heading>
+        </HeadingPage>
       </Container>
     )
   }
@@ -19,108 +24,74 @@ export default function ProjectDetail() {
   return (
     <Container size='3' p='6'>
       <Flex direction='column' gap='4'>
-        <RadixLink asChild>
-          <Link
-            to='/dashboard'
-            style={{
-              textDecoration: 'none',
-              color: 'black',
-              fontSize: '12px',
-              textTransform: 'uppercase',
-              letterSpacing: '0.1em',
-              fontWeight: 'bold',
-            }}
-          >
-            ← Back
-          </Link>
-        </RadixLink>
+        <Link
+          to='/dashboard'
+          underline='none'
+          style={{
+            color: 'var(--gray-12)',
+            fontSize: '12px',
+            fontWeight: 'bold',
+            textTransform: 'uppercase',
+            letterSpacing: '0.1em',
+          }}
+        >
+          ← Back
+        </Link>
 
-        <Heading size='8' style={{ textTransform: 'uppercase', letterSpacing: '0.05em', fontWeight: 'bold' }}>
+        <HeadingPage>
           {project.name}
-        </Heading>
+        </HeadingPage>
 
-        <Box p='4' style={{ border: '1px solid black' }}>
+        <BoxPanel p='4'>
           <Flex direction='column' gap='3'>
-            <Flex justify='between' align='center' pb='3' style={{ borderBottom: '1px solid black' }}>
-              <Text size='1' weight='bold' style={{ textTransform: 'uppercase', letterSpacing: '0.1em' }}>Status</Text>
-              <Text
-                size='1'
-                weight='bold'
-                color={project.status === 'running' ? undefined : 'gray'}
-                style={{
-                  textTransform: 'uppercase',
-                  letterSpacing: '0.1em',
-                }}
-              >
+            <Flex justify='between' align='center' pb='3' style={{ borderBottom: '1px solid var(--gray-12)' }}>
+              <TextLabel>Status</TextLabel>
+              <TextLabel color={project.status === 'running' ? undefined : 'gray'}>
                 {project.status}
-              </Text>
+              </TextLabel>
             </Flex>
 
-            <Flex direction='column' gap='1' pb='3' style={{ borderBottom: '1px solid black' }}>
-              <Text size='1' weight='bold' style={{ textTransform: 'uppercase', letterSpacing: '0.1em' }}>
+            <Flex direction='column' gap='1' pb='3' style={{ borderBottom: '1px solid var(--gray-12)' }}>
+              <TextLabel>
                 Deployment URL
-              </Text>
-              <RadixLink href={project.url} target='_blank' style={{ color: 'black' }}>
+              </TextLabel>
+              <RadixLink href={project.url} target='_blank' style={{ color: 'var(--gray-12)' }}>
                 {project.url}
               </RadixLink>
             </Flex>
 
-            <Flex direction='column' gap='1' pb='3' style={{ borderBottom: '1px solid black' }}>
-              <Text size='1' weight='bold' style={{ textTransform: 'uppercase', letterSpacing: '0.1em' }}>
+            <Flex direction='column' gap='1' pb='3' style={{ borderBottom: '1px solid var(--gray-12)' }}>
+              <TextLabel>
                 Template
-              </Text>
+              </TextLabel>
               <Text size='2'>{project.template.name}</Text>
             </Flex>
 
             <Flex direction='column' gap='1'>
-              <Text size='1' weight='bold' style={{ textTransform: 'uppercase', letterSpacing: '0.1em' }}>Created</Text>
+              <TextLabel>Created</TextLabel>
               <Text size='2'>{new Date(project.createdAt).toLocaleString()}</Text>
             </Flex>
           </Flex>
-        </Box>
+        </BoxPanel>
 
-        <Box p='4' style={{ border: '1px solid black' }}>
+        <BoxPanel p='4'>
           <Flex direction='column' gap='3'>
-            <Heading size='4' style={{ textTransform: 'uppercase', letterSpacing: '0.05em', fontWeight: 'bold' }}>
+            <HeadingPage size='4'>
               Actions
-            </Heading>
+            </HeadingPage>
             <Flex gap='2' wrap='wrap'>
-              <Button
-                variant='outline'
-                size='2'
-                style={{
-                  textTransform: 'uppercase',
-                  letterSpacing: '0.1em',
-                  fontWeight: 'bold',
-                }}
-              >
+              <ButtonAction size='2'>
                 Restart Deployment
-              </Button>
-              <Button
-                variant='outline'
-                size='2'
-                style={{
-                  textTransform: 'uppercase',
-                  letterSpacing: '0.1em',
-                  fontWeight: 'bold',
-                }}
-              >
+              </ButtonAction>
+              <ButtonAction size='2'>
                 Stop Service
-              </Button>
-              <Button
-                variant='outline'
-                size='2'
-                style={{
-                  textTransform: 'uppercase',
-                  letterSpacing: '0.1em',
-                  fontWeight: 'bold',
-                }}
-              >
+              </ButtonAction>
+              <ButtonAction size='2'>
                 Delete Project
-              </Button>
+              </ButtonAction>
             </Flex>
           </Flex>
-        </Box>
+        </BoxPanel>
       </Flex>
     </Container>
   )
