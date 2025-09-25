@@ -1,8 +1,8 @@
-import { projects } from '#data/mock'
-import { Box, Container, Flex, Grid, Text } from '@radix-ui/themes'
+import { ButtonAction } from '#components/button-action'
 import { HeadingPage } from '#components/heading-page'
 import { Link } from '#components/link'
-import { ButtonAction } from '#components/button-action'
+import { projects } from '#data/mock'
+import { Box, Container, Flex, Grid, Text } from '@radix-ui/themes'
 
 export default function Dashboard() {
   return (

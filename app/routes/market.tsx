@@ -1,7 +1,7 @@
+import { HeadingPage } from '#components/heading-page'
 import { templates } from '#data/mock'
 import { Box, Container, Flex, Grid, Text } from '@radix-ui/themes'
 import { useNavigate } from 'react-router'
-import { HeadingPage } from '#components/heading-page'
 
 export default function Market() {
   const navigate = useNavigate()
@@ -43,10 +43,15 @@ export default function Market() {
               <Text size='2' style={{ lineHeight: '1.5' }}>
                 {template.shortDescription}
               </Text>
-              <Text size='1' style={{ textTransform: 'uppercase', letterSpacing: '0.05em' }}>
+              <Text size='1' style={{ textTransform: 'uppercase', letterSpacing: 'var(--letter-spacing-normal)' }}>
                 {template.techStack.join(' · ')}
               </Text>
-              <Text size='1' weight='bold' mt='2' style={{ textTransform: 'uppercase', letterSpacing: '0.1em' }}>
+              <Text
+                size='1'
+                weight='bold'
+                mt='2'
+                style={{ textTransform: 'uppercase', letterSpacing: 'var(--letter-spacing-wide)' }}
+              >
                 {template.status === 'coming-soon' ? '→ Coming Soon' : '→ Launch'}
               </Text>
             </Flex>

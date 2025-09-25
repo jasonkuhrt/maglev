@@ -1,11 +1,11 @@
-import { projects } from '#data/mock'
-import { Box, Container, Flex, Text, Link as RadixLink } from '@radix-ui/themes'
-import { useParams } from 'react-router'
+import { BoxPanel } from '#components/box-panel'
+import { ButtonAction } from '#components/button-action'
 import { HeadingPage } from '#components/heading-page'
 import { Link } from '#components/link'
 import { TextLabel } from '#components/text-label'
-import { ButtonAction } from '#components/button-action'
-import { BoxPanel } from '#components/box-panel'
+import { projects } from '#data/mock'
+import { Box, Container, Flex, Link as RadixLink, Text } from '@radix-ui/themes'
+import { useParams } from 'react-router'
 
 export default function ProjectDetail() {
   const { id } = useParams()

@@ -25,7 +25,11 @@ export const Sidebar: React.FC = () => {
         <Link to='/' underline='none'>
           <Flex align='center' gap='3'>
             <img src='/favicon.svg' alt='Maglev logo' style={{ width: '24px', height: '24px' }} />
-            <Text size='4' weight='bold' style={{ textTransform: 'uppercase', letterSpacing: '0.05em' }}>
+            <Text
+              size='4'
+              weight='bold'
+              style={{ textTransform: 'uppercase', letterSpacing: 'var(--letter-spacing-normal)' }}
+            >
               MAGLEV
             </Text>
           </Flex>
@@ -36,7 +40,11 @@ export const Sidebar: React.FC = () => {
         <Link to='/' underline='none'>
           <Flex align='center' gap='3' p='4' style={{ borderBottom: '1px solid var(--gray-12)' }}>
             <CubeIcon width='16' height='16' />
-            <Text size='1' weight={isActive('/') ? 'bold' : 'regular'} style={{ textTransform: 'uppercase', letterSpacing: '0.05em' }}>
+            <Text
+              size='1'
+              weight={isActive('/') ? 'bold' : 'regular'}
+              style={{ textTransform: 'uppercase', letterSpacing: 'var(--letter-spacing-normal)' }}
+            >
               Market
             </Text>
           </Flex>
@@ -44,7 +52,11 @@ export const Sidebar: React.FC = () => {
         <Link to='/dashboard' underline='none'>
           <Flex align='center' gap='3' p='4' style={{ borderBottom: '1px solid var(--gray-12)' }}>
             <DashboardIcon width='16' height='16' />
-            <Text size='1' weight={isActive('/dashboard') ? 'bold' : 'regular'} style={{ textTransform: 'uppercase', letterSpacing: '0.05em' }}>
+            <Text
+              size='1'
+              weight={isActive('/dashboard') ? 'bold' : 'regular'}
+              style={{ textTransform: 'uppercase', letterSpacing: 'var(--letter-spacing-normal)' }}
+            >
               Dashboard
             </Text>
           </Flex>
@@ -54,7 +66,11 @@ export const Sidebar: React.FC = () => {
       <Link to='/settings' underline='none'>
         <Flex align='center' gap='3' p='4' style={{ borderTop: '1px solid var(--gray-12)' }}>
           <GearIcon width='16' height='16' />
-          <Text size='1' weight={isActive('/settings') ? 'bold' : 'regular'} style={{ textTransform: 'uppercase', letterSpacing: '0.05em' }}>
+          <Text
+            size='1'
+            weight={isActive('/settings') ? 'bold' : 'regular'}
+            style={{ textTransform: 'uppercase', letterSpacing: '0.05em' }}
+          >
             Settings
           </Text>
         </Flex>
