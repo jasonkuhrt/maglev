@@ -3,48 +3,35 @@ import { ButtonAction } from '#components/button-action'
 import { HeadingPage } from '#components/heading-page'
 import { TextLabel } from '#components/text-label'
 import { Config } from '#core/config'
+import { Route } from '#core/route'
 import { settings } from '#data/mock'
-import { Ef, Op, pipe } from '#deps/effect'
-import * as NodeFileSystem from '@effect/platform-node/NodeFileSystem'
+import { Ef, Op } from '#deps/effect'
 import { Container, Flex, Link as RadixLink, Select, Text, TextField } from '@radix-ui/themes'
-import type { Route } from './+types/settings'
+import type { Route as RouteTypes } from './+types/settings'
 
-export const loader = async () => {
-  const result = await Ef.runPromise(
-    pipe(
-      Config.ConfigService,
-      Ef.andThen((service) => service.read),
-      Ef.provide(Config.ConfigServiceLive),
-      Ef.provide(NodeFileSystem.layer),
-      Ef.option,
-    ),
-  )
+export const loader = Route.loader(function* () {
+  const service = yield* Config.ConfigService
+  const config = yield* service.read.pipe(Ef.option)
 
   return {
-    gelDsn: Op.match(result, {
+    gelDsn: Op.match(config, {
       onNone: () => '',
-      onSome: (config) => config.gelDsn,
+      onSome: (c) => c.gelDsn,
     }),
   }
-}
+})
 
-export const action = async ({ request }: Route.ActionArgs) => {
-  const formData = await request.formData()
-  const gelDsn = formData.get('gelDsn') as string
+export const action = Route.action(function* () {
+  const formData = yield* Route.FormData
+  const gelDsn = String(formData.get('gelDsn'))
 
-  await Ef.runPromise(
-    pipe(
-      Config.ConfigService,
-      Ef.andThen((service) => service.write(Config.Config.make({ gelDsn }))),
-      Ef.provide(Config.ConfigServiceLive),
-      Ef.provide(NodeFileSystem.layer),
-    ),
-  )
+  const service = yield* Config.ConfigService
+  yield* service.write(Config.Config.make({ gelDsn }))
 
   return { success: true }
-}
+})
 
-export default function Settings({ loaderData }: Route.ComponentProps) {
+export default function Settings({ loaderData }: RouteTypes.ComponentProps) {
   return (
     <Container size='2' p='6'>
       <HeadingPage mb='6'>

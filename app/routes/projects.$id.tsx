@@ -4,7 +4,7 @@ import { HeadingPage } from '#components/heading-page'
 import { Link } from '#components/link'
 import { TextLabel } from '#components/text-label'
 import { projects } from '#data/mock'
-import { Box, Container, Flex, Link as RadixLink, Text } from '@radix-ui/themes'
+import { Container, Flex, Link as RadixLink, Text } from '@radix-ui/themes'
 import { useParams } from 'react-router'
 
 export default function ProjectDetail() {
