@@ -1,0 +1,17 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100">
+  <style>
+    rect.bg { fill: white; }
+    rect.border { stroke: black; }
+    rect.track { fill: black; }
+
+    @media (prefers-color-scheme: dark) {
+      rect.bg { fill: black; }
+      rect.border { stroke: white; }
+      rect.track { fill: white; }
+    }
+  </style>
+  <rect class="bg" x="0" y="0" width="100" height="100"/>
+  <rect class="border" x="0" y="0" width="100" height="100" fill="none" stroke-width="20"/>
+  <rect class="track" x="25" y="28" width="50" height="16"/>
+  <rect class="track" x="25" y="56" width="50" height="16"/>
+</svg>

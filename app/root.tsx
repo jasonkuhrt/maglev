@@ -1,26 +1,17 @@
+import { Flex, Theme } from '@radix-ui/themes'
+import '@radix-ui/themes/styles.css'
+import './global.css'
 import {
   isRouteErrorResponse,
   Links,
   Meta,
   Outlet,
   ScrollRestoration,
-} from "react-router";
+} from 'react-router'
 
-import type { Route } from "./+types/root";
-import "./app.css";
+import type { Route } from './+types/root'
+import { Sidebar } from '#components/sidebar'
 
-export const links: Route.LinksFunction = () => [
-  { rel: "preconnect", href: "https://fonts.googleapis.com" },
-  {
-    rel: "preconnect",
-    href: "https://fonts.gstatic.com",
-    crossOrigin: "anonymous",
-  },
-  {
-    rel: "stylesheet",
-    href: "https://fonts.googleapis.com/css2?family=Inter:ital,opsz,wght@0,14..32,100..900;1,14..32,100..900&display=swap",
-  },
-];
 
 export function Layout({ children }: { children: React.ReactNode }) {
   return (
@@ -28,6 +19,7 @@ export function Layout({ children }: { children: React.ReactNode }) {
       <head>
         <meta charSet="utf-8" />
         <meta name="viewport" content="width=device-width, initial-scale=1" />
+        <link rel="icon" type="image/svg+xml" href="/favicon.svg" />
         <Meta />
         <Links />
       </head>
@@ -36,38 +28,44 @@ export function Layout({ children }: { children: React.ReactNode }) {
         <ScrollRestoration />
       </body>
     </html>
-  );
+  )
 }
 
 export default function App() {
-  return <Outlet />;
+  return (
+    <Theme appearance="light" accentColor="gray" grayColor="gray" radius="none" scaling="100%">
+      <Flex>
+        <Sidebar />
+        <Flex direction="column" style={{ marginLeft: '200px', width: 'calc(100% - 200px)', minHeight: '100vh' }}>
+          <Outlet />
+        </Flex>
+      </Flex>
+    </Theme>
+  )
 }
 
 export function ErrorBoundary({ error }: Route.ErrorBoundaryProps) {
-  let message = "Oops!";
-  let details = "An unexpected error occurred.";
-  let stack: string | undefined;
+  let message = 'Oops!'
+  let details = 'An unexpected error occurred.'
+  let stack: string | undefined
 
   if (isRouteErrorResponse(error)) {
-    message = error.status === 404 ? "404" : "Error";
-    details =
-      error.status === 404
-        ? "The requested page could not be found."
-        : error.statusText || details;
+    message = error.status === 404 ? '404' : 'Error'
+    details = error.status === 404 ? 'The requested page could not be found.' : error.statusText || details
   } else if (import.meta.env.DEV && error && error instanceof Error) {
-    details = error.message;
-    stack = error.stack;
+    details = error.message
+    stack = error.stack
   }
 
   return (
-    <main className="container p-4 pt-16 mx-auto">
+    <main style={{ padding: '2rem' }}>
       <h1>{message}</h1>
       <p>{details}</p>
       {stack && (
-        <pre className="overflow-x-auto p-4 w-full">
+        <pre style={{ overflow: 'auto', padding: '1rem', background: '#f5f5f5' }}>
           <code>{stack}</code>
         </pre>
       )}
     </main>
-  );
+  )
 }

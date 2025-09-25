@@ -1,14 +1,12 @@
 {
   "extends": [
     "@tsconfig/strictest/tsconfig.json",
-    "@tsconfig/node22/tsconfig.json"
+    "@tsconfig/node24/tsconfig.json"
   ],
-  "include": ["**/*.ts", "**/*.tsx", "./.react-router/types/**/*"],
   "compilerOptions": {
     // Package
-    "module": "NodeNext",
-    "moduleResolution": "nodenext",
-
+    "module": "ESNext",
+    "moduleResolution": "bundler",
     // DX
     "tsBuildInfoFile": "node_modules/.cache/.tsbuildinfo",
     "noErrorTruncation": true,
@@ -34,7 +32,9 @@
     "rootDirs": [".", "./.react-router/types"],
     "baseUrl": ".",
     "paths": {
-      "~/*": ["./app/*"]
+      "#*": ["./app/*"]
     }
-  }
+    // "rootDirs": [".", "./.react-router/types"]
+  },
+  "include": ["**/*.ts", "**/*.tsx", "./.react-router/types/**/*"]
 }
