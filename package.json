@@ -5,6 +5,7 @@
   "packageManager": "pnpm@10.17.1",
   "imports": {
     "#lib/*": "./app/lib/*/$.js",
+    "#core/*": "./app/core/*/$.js",
     "#*": "./app/*.js"
   },
   "scripts": {
