@@ -4,14 +4,15 @@ import { HeadingPage } from '#components/heading-page'
 import { TextLabel } from '#components/text-label'
 import { Config } from '#core/config'
 import { settings } from '#data/mock'
-import { Ef, Op } from '#deps/effect'
+import { Ef, Op, pipe } from '#deps/effect'
 import * as NodeFileSystem from '@effect/platform-node/NodeFileSystem'
 import { Container, Flex, Link as RadixLink, Select, Text, TextField } from '@radix-ui/themes'
 import type { Route } from './+types/settings'
 
 export const loader = async () => {
   const result = await Ef.runPromise(
-    Config.ConfigService.pipe(
+    pipe(
+      Config.ConfigService,
       Ef.andThen((service) => service.read),
       Ef.provide(Config.ConfigServiceLive),
       Ef.provide(NodeFileSystem.layer),
@@ -32,7 +33,8 @@ export const action = async ({ request }: Route.ActionArgs) => {
   const gelDsn = formData.get('gelDsn') as string
 
   await Ef.runPromise(
-    Config.ConfigService.pipe(
+    pipe(
+      Config.ConfigService,
       Ef.andThen((service) => service.write(Config.Config.make({ gelDsn }))),
       Ef.provide(Config.ConfigServiceLive),
       Ef.provide(NodeFileSystem.layer),

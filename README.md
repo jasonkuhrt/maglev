@@ -54,6 +54,23 @@ pnpm dev
 
 Open [http://localhost:5173](http://localhost:5173) and configure your Railway API token in Settings.
 
+## Configuration
+
+The app stores user configuration in a local config file following the XDG Base Directory specification:
+
+- **Location**: `~/.config/maglev/config.json`
+- **Contents**: User-specific settings like EdgeDB connection strings (Gel DSN)
+- **Created**: Automatically when you save settings for the first time
+
+Example config file:
+```json
+{
+  "gelDsn": "edgedb://..."
+}
+```
+
+This keeps sensitive configuration like database credentials separate from your code and secure in your home directory.
+
 ## Development
 
 See [DEVELOPMENT.md](./DEVELOPMENT.md) for development workflow, architecture details, and common tasks.
