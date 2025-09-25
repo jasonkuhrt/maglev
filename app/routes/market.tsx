@@ -1,6 +1,6 @@
+import { templates } from '#data/mock'
 import { Box, Container, Flex, Grid, Heading, Text } from '@radix-ui/themes'
 import { useNavigate } from 'react-router'
-import { templates } from '#data/mock'
 
 export default function Market() {
   const navigate = useNavigate()
@@ -10,15 +10,15 @@ export default function Market() {
   }
 
   return (
-    <Container size="4" p="6">
-      <Heading size="8" mb="6" style={{ textTransform: 'uppercase', letterSpacing: '0.05em', fontWeight: 'bold' }}>
+    <Container size='4' p='6'>
+      <Heading size='8' mb='6' style={{ textTransform: 'uppercase', letterSpacing: '0.05em', fontWeight: 'bold' }}>
         Templates
       </Heading>
-      <Grid columns={{ initial: '1', md: '2' }} gap="1" style={{ border: '1px solid black' }}>
+      <Grid columns={{ initial: '1', md: '2' }} gap='1' style={{ border: '1px solid black' }}>
         {templates.map((template) => (
           <Box
             key={template.id}
-            p="4"
+            p='4'
             style={{
               borderRight: '1px solid black',
               borderBottom: '1px solid black',
@@ -35,17 +35,17 @@ export default function Market() {
               e.currentTarget.style.backgroundColor = 'white'
             }}
           >
-            <Flex direction="column" gap="2">
-              <Heading size="4" style={{ fontWeight: 'bold', textTransform: 'uppercase', letterSpacing: '0.05em' }}>
+            <Flex direction='column' gap='2'>
+              <Heading size='4' style={{ fontWeight: 'bold', textTransform: 'uppercase', letterSpacing: '0.05em' }}>
                 {template.name}
               </Heading>
-              <Text size="2" style={{ lineHeight: '1.5' }}>
+              <Text size='2' style={{ lineHeight: '1.5' }}>
                 {template.shortDescription}
               </Text>
-              <Text size="1" style={{ textTransform: 'uppercase', letterSpacing: '0.05em' }}>
+              <Text size='1' style={{ textTransform: 'uppercase', letterSpacing: '0.05em' }}>
                 {template.techStack.join(' · ')}
               </Text>
-              <Text size="1" weight="bold" mt="2" style={{ textTransform: 'uppercase', letterSpacing: '0.1em' }}>
+              <Text size='1' weight='bold' mt='2' style={{ textTransform: 'uppercase', letterSpacing: '0.1em' }}>
                 {template.status === 'coming-soon' ? '→ Coming Soon' : '→ Launch'}
               </Text>
             </Flex>

@@ -42,7 +42,8 @@ export const templates: Template[] = [
   {
     id: 'bun-elysia-htmx',
     name: 'Bun + Elysia + HTMX',
-    description: 'Blazing fast backend powered by Bun runtime with Elysia framework and HTMX for hypermedia-driven interactivity.',
+    description:
+      'Blazing fast backend powered by Bun runtime with Elysia framework and HTMX for hypermedia-driven interactivity.',
     shortDescription: 'Modern backend with HTMX for hypermedia',
     techStack: ['bun', 'elysia', 'htmx', 'typescript'],
     category: 'fullstack',
@@ -54,7 +55,8 @@ export const templates: Template[] = [
   {
     id: 'deno-fresh-preact',
     name: 'Deno + Fresh + Preact',
-    description: 'Island architecture with Deno runtime, Fresh framework, and Preact for zero-JS by default performance.',
+    description:
+      'Island architecture with Deno runtime, Fresh framework, and Preact for zero-JS by default performance.',
     shortDescription: 'Island architecture with Deno runtime',
     techStack: ['deno', 'fresh', 'preact', 'typescript'],
     category: 'frontend',

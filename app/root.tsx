@@ -1,25 +1,24 @@
 import { Flex, Theme } from '@radix-ui/themes'
 import '@radix-ui/themes/styles.css'
 import './global.css'
-import {
-  isRouteErrorResponse,
-  Links,
-  Meta,
-  Outlet,
-  ScrollRestoration,
-} from 'react-router'
+import { isRouteErrorResponse, Links, Meta, Outlet, ScrollRestoration } from 'react-router'
 
-import type { Route } from './+types/root'
 import { Sidebar } from '#components/sidebar'
-
+import type { Route } from './+types/root'
 
 export function Layout({ children }: { children: React.ReactNode }) {
   return (
-    <html lang="en">
+    <html lang='en'>
       <head>
-        <meta charSet="utf-8" />
-        <meta name="viewport" content="width=device-width, initial-scale=1" />
-        <link rel="icon" type="image/svg+xml" href="/favicon.svg" />
+        <meta charSet='utf-8' />
+        <meta name='viewport' content='width=device-width, initial-scale=1' />
+        <link rel='icon' type='image/svg+xml' href='/favicon.svg' />
+        <link rel='preconnect' href='https://fonts.googleapis.com' />
+        <link rel='preconnect' href='https://fonts.gstatic.com' crossOrigin='anonymous' />
+        <link
+          href='https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Space+Grotesk:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500;600;700&display=swap'
+          rel='stylesheet'
+        />
         <Meta />
         <Links />
       </head>
@@ -33,10 +32,10 @@ export function Layout({ children }: { children: React.ReactNode }) {
 
 export default function App() {
   return (
-    <Theme appearance="light" accentColor="gray" grayColor="gray" radius="none" scaling="100%">
+    <Theme appearance='light' accentColor='gray' grayColor='gray' radius='none' scaling='100%'>
       <Flex>
         <Sidebar />
-        <Flex direction="column" style={{ marginLeft: '200px', width: 'calc(100% - 200px)', minHeight: '100vh' }}>
+        <Flex direction='column' style={{ marginLeft: '200px', width: 'calc(100% - 200px)', minHeight: '100vh' }}>
           <Outlet />
         </Flex>
       </Flex>
