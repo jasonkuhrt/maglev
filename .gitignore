@@ -1,5 +1,6 @@
 .DS_Store
 /node_modules/
+.claude.md
 
 # React Router
 /.react-router/

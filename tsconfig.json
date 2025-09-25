@@ -1,16 +1,33 @@
 {
+  "extends": [
+    "@tsconfig/strictest/tsconfig.json",
+    "@tsconfig/node22/tsconfig.json"
+  ],
   "include": ["**/*.ts", "**/*.tsx", "./.react-router/types/**/*"],
   "compilerOptions": {
-    "allowImportingTsExtensions": true,
-    "strict": true,
-    "noUnusedLocals": true,
-    "noUnusedParameters": true,
-    "skipLibCheck": true,
+    // Package
+    "module": "NodeNext",
+    "moduleResolution": "nodenext",
+
+    // DX
+    "tsBuildInfoFile": "node_modules/.cache/.tsbuildinfo",
+    "noErrorTruncation": true,
+    "incremental": true,
     "verbatimModuleSyntax": true,
+    "skipLibCheck": true,
     "noEmit": true,
-    "moduleResolution": "Bundler",
-    "module": "ESNext",
-    "target": "ESNext",
+
+    // Handled by ESLint:
+    "noUnusedLocals": false,
+    "noUnusedParameters": false,
+
+    // Downstream DX
+    "isolatedModules": true,
+    "sourceMap": true,
+    "declaration": true,
+    "declarationMap": true,
+
+    // React Router specific
     "lib": ["ESNext", "DOM", "DOM.Iterable"],
     "types": ["vite/client", "@vitejs/plugin-rsc/types"],
     "jsx": "react-jsx",

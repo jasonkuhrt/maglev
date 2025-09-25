@@ -1,12 +1,17 @@
 {
-  "name": "",
+  "name": "maglev",
   "private": true,
   "type": "module",
   "scripts": {
     "build": "react-router build",
     "dev": "react-router dev",
     "start": "react-router-serve build/server/index.js",
-    "typecheck": "react-router typegen && tsc"
+    "fix": "pnpm run '/^fix:.*/'",
+    "fix:format": "dprint fmt",
+    "check": "pnpm run '/^check:.*/'",
+    "check:format": "dprint check",
+    "check:lint": "oxlint",
+    "check:types": "react-router typegen && tsc --noEmit"
   },
   "dependencies": {
     "@react-router/serve": "7.9.2",
@@ -19,10 +24,14 @@
     "@react-router/dev": "7.9.2",
     "@react-router/fs-routes": "7.9.2",
     "@tailwindcss/vite": "4.1.13",
+    "@tsconfig/node22": "^22.0.2",
+    "@tsconfig/strictest": "^2.0.6",
     "@types/node": "24.5.2",
     "@types/react": "19.1.13",
     "@types/react-dom": "19.1.9",
     "@vitejs/plugin-rsc": "0.4.31",
+    "dprint": "^0.50.2",
+    "oxlint": "^1.18.0",
     "tailwindcss": "4.1.13",
     "typescript": "5.9.2",
     "vite": "7.1.6",
