@@ -35,7 +35,6 @@
       "#lib/*": ["./app/lib/*/$.ts"],
       "#*": ["./app/*"]
     }
-    // "rootDirs": [".", "./.react-router/types"]
   },
   "include": [
     "sandbox/**/*.ts",
