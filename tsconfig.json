@@ -32,9 +32,16 @@
     "rootDirs": [".", "./.react-router/types"],
     "baseUrl": ".",
     "paths": {
+      "#lib/*": ["./app/lib/*/$.ts"],
       "#*": ["./app/*"]
     }
     // "rootDirs": [".", "./.react-router/types"]
   },
-  "include": ["**/*.ts", "**/*.tsx", "./.react-router/types/**/*"]
+  "include": [
+    "sandbox/**/*.ts",
+    "app/**/*.ts",
+    "app/**/*.tsx",
+    "./.react-router/types/**/*",
+    "*.ts"
+  ]
 }

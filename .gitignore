@@ -5,3 +5,11 @@
 # React Router
 /.react-router/
 /build/
+
+# Graffle
+/graffle/
+/app/lib/**/__generated__/
+
+# sandbox (user scratch space)
+/sandbox/
+!/sandbox/.templates/
