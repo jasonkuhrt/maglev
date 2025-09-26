@@ -3,7 +3,7 @@ import { projects } from '#data/mock'
 import { Ef } from '#deps/effect'
 import type { Template } from './template.js'
 
-// Project type - will be replaced with EdgeDB generated type
+// Project type - will be replaced with Gel generated type
 export interface Project {
   id: string
   name: string
@@ -22,7 +22,7 @@ export interface Project {
  */
 export const getAll = () =>
   Ef.gen(function*() {
-    // TODO: Replace with actual EdgeDB query once set up
+    // TODO: Replace with actual Gel query once set up
     // const { client } = yield* Gel.GelClient
     // return yield* Ef.tryPromise({
     //   try: () => e
@@ -50,7 +50,7 @@ export const getAll = () =>
  */
 export const getById = (id: string) =>
   Ef.gen(function*() {
-    // TODO: Replace with actual EdgeDB query once set up
+    // TODO: Replace with actual Gel query once set up
     // const { client } = yield* Gel.GelClient
     // return yield* Ef.tryPromise({
     //   try: async () => {
@@ -84,7 +84,7 @@ export const getById = (id: string) =>
     const project = projects.find(p => p.id === id)
     if (!project) {
       yield* Ef.fail(
-        new Gel.NotFoundError({
+        new Gel.Errors.NotFoundError({
           resource: 'Project',
           id,
         }),
@@ -104,7 +104,7 @@ export const create = (data: {
   railwayEnvironmentId?: string
 }) =>
   Ef.gen(function*() {
-    // TODO: Replace with actual EdgeDB query once set up
+    // TODO: Replace with actual Gel query once set up
     // const { client } = yield* Gel.GelClient
     // return yield* Ef.tryPromise({
     //   try: () => e
@@ -142,7 +142,7 @@ export const create = (data: {
  */
 export const deleteById = (id: string) =>
   Ef.gen(function*() {
-    // TODO: Replace with actual EdgeDB query once set up
+    // TODO: Replace with actual Gel query once set up
     // const { client } = yield* Gel.GelClient
     // return yield* Ef.tryPromise({
     //   try: async () => {
@@ -174,7 +174,7 @@ export const deleteById = (id: string) =>
     const index = projects.findIndex(p => p.id === id)
     if (index === -1) {
       yield* Ef.fail(
-        new Gel.NotFoundError({
+        new Gel.Errors.NotFoundError({
           resource: 'Project',
           id,
         }),

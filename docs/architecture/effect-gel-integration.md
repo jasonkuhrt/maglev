@@ -2,7 +2,7 @@
 
 ## Overview
 
-This project uses **Effect-TS** for type-safe functional programming and **Gel** (EdgeDB) for the database layer. This document explains the architectural decisions, type flows, and integration patterns.
+This project uses **Effect-TS** for type-safe functional programming and **Gel** for the database layer. This document explains the architectural decisions, type flows, and integration patterns.
 
 ## Stack Decision
 
@@ -273,7 +273,7 @@ import { Config } from '#lib/config'
 
 ## Resources
 
-- [Building with Effect and EdgeDB: Part 1](https://www.geldata.com/blog/building-with-effect-and-edgedb-part-1) - Core Effect patterns
+- [Building with Effect and Gel: Part 1](https://www.geldata.com/blog/building-with-effect-and-gel-part-1) - Core Effect patterns
 - [Gel Query Builder Design](https://www.geldata.com/blog/designing-the-ultimate-typescript-query-builder) - Type safety architecture
 - [React Server Components](https://react.dev/reference/rsc/server-components) - RSC fundamentals
 - [Effect Documentation](https://effect.website/docs) - Effect patterns

@@ -33,6 +33,8 @@
     "baseUrl": ".",
     "paths": {
       "#lib/*": ["./app/lib/*/$.ts"],
+      "#composers/*": ["./app/composers/*/$.ts"],
+      "#core/*": ["./app/core/*/$.ts"],
       "#*": ["./app/*"]
     }
   },
@@ -44,6 +46,6 @@
     "*.ts"
   ],
   "exclude": [
-    "app/core/gel/generated/**/*"
+    "app/lib/railway/__generated__/**/*"
   ]
 }

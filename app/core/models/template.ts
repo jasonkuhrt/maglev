@@ -2,7 +2,7 @@ import { Gel } from '#core/gel'
 import { templates } from '#data/mock'
 import { Ef } from '#deps/effect'
 
-// Template type - will be replaced with EdgeDB generated type
+// Template type - will be replaced with Gel generated type
 export interface Template {
   id: string
   name: string
@@ -21,7 +21,7 @@ export interface Template {
  */
 export const getAll = () =>
   Ef.gen(function*() {
-    // TODO: Replace with actual EdgeDB query once set up
+    // TODO: Replace with actual Gel query once set up
     // const { client } = yield* Gel.GelClient
     // return yield* Ef.tryPromise({
     //   try: () => e
@@ -45,7 +45,7 @@ export const getAll = () =>
  */
 export const getById = (id: string) =>
   Ef.gen(function*() {
-    // TODO: Replace with actual EdgeDB query once set up
+    // TODO: Replace with actual Gel query once set up
     // const { client } = yield* Gel.GelClient
     // return yield* Ef.tryPromise({
     //   try: async () => {
@@ -78,7 +78,7 @@ export const getById = (id: string) =>
     const template = templates.find(t => t.id === id)
     if (!template) {
       yield* Ef.fail(
-        new Gel.NotFoundError({
+        new Gel.Errors.NotFoundError({
           resource: 'Template',
           id,
         }),

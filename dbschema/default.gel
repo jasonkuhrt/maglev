@@ -1,4 +1,21 @@
 module default {
+  scalar type Theme extending enum<'light', 'dark', 'system'>;
+
+  type Settings {
+    railwayApiToken: str;  # Now nullable
+    gelDsn: str;
+    theme: Theme {
+      default := Theme.system;
+    }
+    required createdAt: datetime {
+      default := datetime_current();
+    }
+    updatedAt: datetime;
+
+    # Ensure only one Settings record exists
+    constraint exclusive on (true);
+  }
+
   type Project {
     required name: str;
     required templateId: str;  # Railway template ID

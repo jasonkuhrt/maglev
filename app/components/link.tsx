@@ -1,36 +1,64 @@
 'use client'
 
-import { Link as RadixLink } from '@radix-ui/themes'
+import { css, cva } from '#styled-system/css'
 import type { ComponentProps } from 'react'
 import { forwardRef } from 'react'
 import { Link as RRLink, useLocation } from 'react-router'
 
-type RadixLinkProps = ComponentProps<typeof RadixLink>
-type RRLinkProps = ComponentProps<typeof RRLink>
+const linkStyles = cva({
+  base: {
+    color: 'text.primary',
+    textDecoration: 'none',
+    cursor: 'pointer',
+    transition: 'all 0.2s',
+    _hover: {
+      textDecoration: 'underline',
+    },
+  },
+  variants: {
+    underline: {
+      none: { textDecoration: 'none' },
+      hover: { _hover: { textDecoration: 'underline' } },
+      always: { textDecoration: 'underline' },
+    },
+    weight: {
+      normal: { fontWeight: 'normal' },
+      medium: { fontWeight: 'medium' },
+      bold: { fontWeight: 'bold' },
+    },
+    color: {
+      primary: { color: 'text.primary' },
+      secondary: { color: 'text.secondary' },
+      blue: { color: 'blue.500' },
+    },
+  },
+  defaultVariants: {
+    underline: 'hover',
+    weight: 'normal',
+    color: 'primary',
+  },
+})
 
-type Props =
-  & Omit<RRLinkProps, 'color'>
-  & Pick<RadixLinkProps, 'size' | 'weight' | 'underline' | 'color' | 'highContrast' | 'trim'>
-  & {
-    activeClassName?: string
-    activeWeight?: RadixLinkProps['weight']
-    activeColor?: RadixLinkProps['color']
-  }
+type Props = ComponentProps<typeof RRLink> & {
+  underline?: 'none' | 'hover' | 'always'
+  weight?: 'normal' | 'medium' | 'bold'
+  color?: 'primary' | 'secondary' | 'blue'
+  activeClassName?: string
+  activeWeight?: 'normal' | 'medium' | 'bold'
+  activeColor?: 'primary' | 'secondary' | 'blue'
+}
 
 export const Link = forwardRef<HTMLAnchorElement, Props>(
   ({
-    size,
-    weight,
-    underline,
-    color,
-    highContrast,
-    trim,
+    underline = 'hover',
+    weight = 'normal',
+    color = 'primary',
     activeClassName,
     activeWeight,
     activeColor,
     className,
     to,
-    ...rrLinkProps
+    ...props
   }, ref) => {
     const location = useLocation()
     const isActive = location.pathname === to
@@ -38,30 +66,20 @@ export const Link = forwardRef<HTMLAnchorElement, Props>(
     // Apply active styles
     const effectiveWeight = isActive && activeWeight ? activeWeight : weight
     const effectiveColor = isActive && activeColor ? activeColor : color
-    const effectiveClassName = isActive && activeClassName
-      ? className ? `${className} ${activeClassName}` : activeClassName
-      : className
-
-    const radixProps = {
-      asChild: true as const,
-      ...(size !== undefined && { size }),
-      ...(effectiveWeight !== undefined && { weight: effectiveWeight }),
-      ...(underline !== undefined && { underline }),
-      ...(effectiveColor !== undefined && { color: effectiveColor }),
-      ...(highContrast !== undefined && { highContrast }),
-      ...(trim !== undefined && { trim }),
-    }
+    const effectiveClassName = css(
+      linkStyles.raw({ underline, weight: effectiveWeight, color: effectiveColor }),
+      ...(className ? [className as any] : []),
+      ...(isActive && activeClassName ? [activeClassName as any] : []),
+    )
 
     return (
-      <RadixLink {...radixProps}>
-        <RRLink
-          ref={ref}
-          to={to}
-          className={effectiveClassName}
-          data-active={isActive || undefined}
-          {...rrLinkProps}
-        />
-      </RadixLink>
+      <RRLink
+        ref={ref}
+        to={to}
+        className={effectiveClassName}
+        data-active={isActive || undefined}
+        {...props}
+      />
     )
   },
 )

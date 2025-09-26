@@ -8,7 +8,7 @@ Browse curated templates → Click "Launch" → Get live Railway deployment in s
 
 - **Railway Account** - Sign up at [railway.app](https://railway.app)
 - **Railway API Token** - See setup instructions below
-- **Gel (EdgeDB)** - Database for storing projects and templates (see Gel setup below)
+- **Gel** - Database for storing projects and templates (see Gel setup below)
 
 ### Setup Railway API Token
 
@@ -42,25 +42,25 @@ Browse curated templates → Click "Launch" → Get live Railway deployment in s
 
 ### Setup Gel
 
-Gel (EdgeDB) is a modern graph-relational database used by Maglev to store projects and templates.
+Gel is a modern graph-relational database used by Maglev to store projects and templates.
 
 1. **Install Gel CLI:**
    ```bash
    # macOS/Linux
-   curl --proto '=https' --tlsv1.2 -sSf https://sh.edgedb.com | sh
+   curl --proto '=https' --tlsv1.2 -sSf https://sh.geldata.com | sh
 
    # Or via Homebrew
-   brew install edgedb/tap/edgedb-cli
+   brew install gel/tap/gel-cli
    ```
 
-   **Note:** The EdgeDB CLI is aliased as `gel` on most systems.
+   **Note:** The CLI command is `gel`.
 
 2. **Initialize the project database:**
    ```bash
    # This will create a local Gel instance for the project
    gel project init
 
-   # The project is already configured with edgedb.toml
+   # The project is already configured with gel.toml
    # This will create an instance named after your project
    ```
 
@@ -78,8 +78,8 @@ Gel (EdgeDB) is a modern graph-relational database used by Maglev to store proje
 
 **Resources:**
 
-- [Gel (EdgeDB) Documentation](https://www.edgedb.com/docs)
-- [Gel + Effect Guide](https://www.edgedb.com/blog/building-with-effect-and-edgedb-part-1)
+- [Gel Documentation](https://www.geldata.com/docs)
+- [Gel + Effect Guide](https://www.geldata.com/blog/building-with-effect-and-gel-part-1)
 
 ### Install and Run
 
@@ -108,7 +108,7 @@ Example config file:
 
 ```json
 {
-  "gelDsn": "edgedb://..."
+  "gelDsn": "gel://..."
 }
 ```
 

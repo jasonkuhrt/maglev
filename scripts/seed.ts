@@ -1,17 +1,17 @@
 #!/usr/bin/env tsx
 
-import { createClient } from 'edgedb'
 import { Ef } from 'effect'
+import { createClient } from 'gel'
 
 /**
- * Seed script for EdgeDB database
+ * Seed script for Gel database
  * Run with: tsx scripts/seed.ts
  *
  * Prerequisites:
- * 1. EdgeDB CLI installed: curl --proto '=https' --tlsv1.2 -sSf https://sh.edgedb.com | sh
- * 2. EdgeDB project initialized: edgedb project init
- * 3. Migrations created: edgedb migration create
- * 4. Migrations applied: edgedb migrate
+ * 1. Gel CLI installed: curl --proto '=https' --tlsv1.2 -sSf https://sh.geldata.com | sh
+ * 2. Gel project initialized: gel project init
+ * 3. Migrations created: gel migration create
+ * 4. Migrations applied: gel migrate
  */
 
 const seedDatabase = Ef.gen(function*() {
@@ -24,9 +24,9 @@ const seedDatabase = Ef.gen(function*() {
   yield* Ef.tryPromise({
     try: async () => {
       await client.ensureConnected()
-      console.log('✅ Connected to EdgeDB')
+      console.log('✅ Connected to Gel')
     },
-    catch: (error) => new Error(`Failed to connect to EdgeDB: ${error}`),
+    catch: (error) => new Error(`Failed to connect to Gel: ${error}`),
   })
 
   // Seed templates
@@ -102,8 +102,8 @@ const seedDatabase = Ef.gen(function*() {
     try: async () => {
       console.log(`📝 Seeding ${templates.length} templates...`)
 
-      // Note: This is raw EdgeQL since we don't have the query builder generated yet
-      // Once `npx @edgedb/generate edgeql-js` is run, replace with:
+      // Note: This is raw GelQL since we don't have the query builder generated yet
+      // Once `npx @gel/generate gel-js` is run, replace with:
       // await e.insert(e.Template, templates).run(client)
 
       for (const template of templates) {

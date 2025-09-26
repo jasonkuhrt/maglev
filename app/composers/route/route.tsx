@@ -1,7 +1,8 @@
 import { Config } from '#core/config'
 import { Gel } from '#core/gel'
+import { Settings } from '#core/settings'
 import { Ctx, Ef, type Ei, Lr } from '#deps/effect'
-import { Railway } from '#lib/railway'
+import { Efy } from '#lib/efy'
 import { FileSystem } from '@effect/platform'
 import * as NodeFileSystem from '@effect/platform-node/NodeFileSystem'
 import * as React from 'react'
@@ -41,18 +42,35 @@ export class Context extends Ctx.Tag('Route.Context')<
 // ================
 
 /**
- * Pre-configured runtime with common layers
+ * Runtime for client-side code (loaders, actions, client components)
+ * Includes all necessary service layers
  */
-const AppRuntime = Lr.mergeAll(
+const ClientRuntime = Lr.mergeAll(
   NodeFileSystem.layer,
   Config.ConfigServiceLive,
-  Railway.ContextLive,
-  Gel.GelClientLive,
+  Gel.ClientLive,
+  Settings.ServiceLive,
+)
+
+/**
+ * Runtime for server components
+ * Includes all layers including Node.js-specific ones
+ * Note: Railway.ContextLive excluded as it fails eagerly without API token
+ */
+const ServerRuntime = Lr.mergeAll(
+  NodeFileSystem.layer,
+  Config.ConfigServiceLive,
+  Gel.ClientLive,
+  Settings.ServiceLive,
 )
 
 // ================
 // TYPES
 // ================
+
+export type ErrorBoundaryProps = {
+  error: Error | unknown
+}
 
 type ActionArgs = {
   request: globalThis.Request
@@ -65,6 +83,34 @@ type ActionFunction<A> = (args: ActionArgs) => Ef.Effect<A, any, any>
 type LoaderFunction<A> = (args: LoaderArgs) => Ef.Effect<A, any, any>
 
 // ================
+// SHARED HELPERS
+// ================
+
+/**
+ * Provides common route context services
+ */
+const provideRouteContext = <R, E, A>(
+  effect: Ef.Effect<A, E, R>,
+  args: { request: globalThis.Request; params: Record<string, string | undefined> },
+  formDataService?: Ef.Effect<globalThis.FormData, any, any>,
+) => {
+  let pipeline = effect.pipe(
+    Ef.provideService(Request, args.request),
+    Ef.provideService(Params, args.params),
+    Ef.provideService(Context, {
+      request: args.request,
+      params: args.params,
+    }),
+  )
+
+  if (formDataService) {
+    pipeline = pipeline.pipe(Ef.provideServiceEffect(FormData, formDataService))
+  }
+
+  return pipeline.pipe(Ef.provide(ClientRuntime))
+}
+
+// ================
 // ACTION & LOADER
 // ================
 
@@ -72,9 +118,11 @@ type LoaderFunction<A> = (args: LoaderArgs) => Ef.Effect<A, any, any>
  * Creates a React Router action with Effect runtime
  */
 export const action = <A,>(
-  fn:
-    | (() => Ef.Effect<A, any, Request | FormData | Params | Context | Config.ConfigService | FileSystem.FileSystem>)
-    | (() => Generator<any, A, any>),
+  fn: Efy.EffectOrGen<
+    A,
+    any,
+    Request | FormData | Params | Context | Config.ConfigService | FileSystem.FileSystem | Settings.Service
+  >,
 ): (args: ActionArgs) => Promise<A> => {
   return async (args: ActionArgs) => {
     // Create FormData service that lazily loads form data
@@ -85,24 +133,10 @@ export const action = <A,>(
       })
     )
 
-    // Convert generator to Effect if needed
-    const result = fn()
-    const effect = (
-      // Check if it's a generator
-      result && typeof result === 'object' && Symbol.iterator in result
-        ? Ef.gen(() => result as Generator<any, A, any>)
-        : result as Ef.Effect<A, any, any>
-    ).pipe(
-      // Provide route context services
-      Ef.provideService(Request, args.request),
-      Ef.provideServiceEffect(FormData, formDataService),
-      Ef.provideService(Params, args.params),
-      Ef.provideService(Context, {
-        request: args.request,
-        params: args.params,
-      }),
-      // Provide app runtime layers
-      Ef.provide(AppRuntime),
+    const effect = provideRouteContext(
+      Efy.normalizeGenOrEffect(fn),
+      args,
+      formDataService,
     )
 
     return Ef.runPromise(effect as Ef.Effect<A, never, never>).catch(e => e)
@@ -113,34 +147,23 @@ export const action = <A,>(
  * Creates a React Router loader with Effect runtime
  */
 export const loader = <A,>(
-  fn:
-    | (() => Ef.Effect<A, any, Request | Params | Context | Config.ConfigService | FileSystem.FileSystem>)
-    | (() => Generator<any, A, any>),
+  fn: Efy.EffectOrGen<
+    A,
+    any,
+    Request | Params | Context | Config.ConfigService | FileSystem.FileSystem | Settings.Service
+  >,
 ): (args: LoaderArgs) => Promise<A> => {
   return async (args: LoaderArgs) => {
-    // Convert generator to Effect if needed
-    const generatorOrEffect = fn()
-    const effect = (
-      // Check if it's a generator
-      generatorOrEffect && typeof generatorOrEffect === 'object' && Symbol.iterator in generatorOrEffect
-        ? Ef.gen(() => generatorOrEffect as Generator<any, A, any>)
-        : generatorOrEffect as Ef.Effect<A, any, any>
+    const effect = provideRouteContext(
+      Efy.normalizeGenOrEffect(fn),
+      args,
     ).pipe(
-      // Provide route context services (no FormData for loaders)
-      Ef.provideService(Request, args.request),
-      Ef.provideService(Params, args.params),
-      Ef.provideService(Context, {
-        request: args.request,
-        params: args.params,
-      }),
-      // Provide app runtime layers
-      Ef.provide(AppRuntime),
       // Convert to Either to handle both success and failure
       Ef.either,
     )
 
     // Run the effect and get the Either result
-    const either = await Ef.runPromise(effect as Ef.Effect<Ei.Either<any, A>, never, never>).catch(e => e)
+    const either = await Ef.runPromise(effect).catch(e => e)
 
     // Handle the Either result
     if (either._tag === 'Left') {
@@ -163,31 +186,27 @@ export const loader = <A,>(
 
 /**
  * Creates a React Router server component with Effect runtime
+ * Supports returning ReactNode (string, number, ReactElement, null, etc.)
+ * undefined is converted to null for React compatibility
  */
-export const Server = <Props = {}>(
-  fn:
-    | ((props: Props) => Ef.Effect<React.ReactElement, any, Config.ConfigService | FileSystem.FileSystem>)
-    | ((props: Props) => Generator<any, React.ReactElement, any>),
-): React.FC<Props> => {
-  return async (props: Props) => {
-    // Convert generator to Effect if needed
-    const generatorOrEffect = fn(props)
-    const effect = (
-      // Check if it's a generator
-      generatorOrEffect && typeof generatorOrEffect === 'object' && Symbol.iterator in generatorOrEffect
-        ? Ef.gen(() => generatorOrEffect as Generator<any, React.ReactElement, any>)
-        : generatorOrEffect as Ef.Effect<React.ReactElement, any, any>
-    ).pipe(
-      // Provide app runtime layers
-      Ef.provide(AppRuntime),
+export const Server = (
+  fn: Efy.EffectOrGen<
+    React.ReactNode | undefined,
+    any,
+    Config.ConfigService | FileSystem.FileSystem | Settings.Service
+  >,
+): React.FC => {
+  return async () => {
+    // Convert generator function to Effect if needed
+    const effect = Efy.normalizeGenOrEffect(fn).pipe(
+      // Provide server runtime layers (includes Config and Railway)
+      Ef.provide(ServerRuntime),
       // Convert to Either to handle both success and failure
       Ef.either,
     )
 
     // Run the effect and get the Either result
-    const either = await Ef.runPromise(effect as Ef.Effect<Ei.Either<any, React.ReactElement>, never, never>).catch(e =>
-      e
-    )
+    const either = await Ef.runPromise(effect).catch(e => e)
 
     // Handle the Either result
     if (either && typeof either === 'object' && '_tag' in either) {
@@ -202,8 +221,9 @@ export const Server = <Props = {}>(
           </div>
         )
       }
-      // For success, return the component
-      return either.right
+      // For success, return the component (convert undefined to null for React)
+      const result = either.right
+      return result === undefined ? null : result
     }
 
     // Handle unexpected errors (including caught promise rejections)

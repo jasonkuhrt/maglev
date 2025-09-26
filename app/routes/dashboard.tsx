@@ -1,63 +1,37 @@
-import { ButtonAction } from '#components/button-action'
-import { HeadingPage } from '#components/heading-page'
-import { Link } from '#components/link'
+import { ProjectCard } from '#blocks/project-card'
+import { Card } from '#components/card'
+import { PageLayout } from '#components/page-layout'
+import { Heading, Text } from '#components/typography'
+import { Route } from '#composers/route'
 import { projects } from '#data/mock'
-import { Box, Container, Flex, Grid, Text } from '@radix-ui/themes'
+import { Grid } from '#styled-system/jsx'
 
-export default function Dashboard() {
+export const ServerComponent = Route.Server(function*() {
   return (
-    <Container size='4' p='6'>
-      <HeadingPage mb='6'>
+    <PageLayout maxWidth='lg'>
+      <Heading size='xl' caps marginBottom='40px'>
         Projects
-      </HeadingPage>
-      <Grid columns={{ initial: '1' }} gap='0' style={{ border: '1px solid var(--gray-12)' }}>
-        {projects.map((project) => (
-          <Box
-            key={project.id}
-            p='4'
-            style={{ borderBottom: '1px solid var(--gray-12)' }}
+      </Heading>
+
+      {projects.length === 0
+        ? (
+          <Card padding='md'>
+            <Text>No projects yet. Deploy a template to get started.</Text>
+          </Card>
+        )
+        : (
+          <Grid
+            gridTemplateColumns={{ base: '1fr', md: 'repeat(2, 1fr)', lg: 'repeat(3, 1fr)' }}
+            gap='0'
           >
-            <Flex justify='between' align='center'>
-              <Flex direction='column' gap='1'>
-                <Link
-                  to={`/projects/${project.id}`}
-                  underline='none'
-                  style={{
-                    color: 'var(--gray-12)',
-                    fontWeight: 'bold',
-                    fontSize: '18px',
-                    textTransform: 'uppercase',
-                    letterSpacing: '0.05em',
-                  }}
-                >
-                  {project.name}
-                </Link>
-                <Text size='1' style={{ textTransform: 'uppercase', letterSpacing: '0.05em' }}>
-                  {project.template.name} · {new Date(project.createdAt).toLocaleDateString()}
-                </Text>
-              </Flex>
-              <Flex gap='4' align='center'>
-                <Text
-                  size='1'
-                  weight='bold'
-                  color={project.status === 'running' ? undefined : 'gray'}
-                  style={{ textTransform: 'uppercase', letterSpacing: '0.1em' }}
-                >
-                  {project.status}
-                </Text>
-                <Flex gap='2'>
-                  <ButtonAction size='1'>
-                    Restart
-                  </ButtonAction>
-                  <ButtonAction size='1'>
-                    Delete
-                  </ButtonAction>
-                </Flex>
-              </Flex>
-            </Flex>
-          </Box>
-        ))}
-      </Grid>
-    </Container>
+            {projects.map((project) => (
+              <ProjectCard
+                key={project.id}
+                project={project}
+              />
+            ))}
+          </Grid>
+        )}
+    </PageLayout>
   )
-}
+})

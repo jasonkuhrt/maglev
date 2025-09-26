@@ -139,7 +139,7 @@ These key tools are used to build Maglev:
 
 - TypeScript for language
 - Effect with @wollybeard/kit for standard library
-- Gel (EdgeDB) for persistence layer
+- Gel for persistence layer
 - Vite for build/framework
 - React for UI components
 - React Router for navigation and data loading
@@ -158,7 +158,7 @@ These key tools are used to build Maglev:
 
 ```
 User's machine:
-├── Gel database (local EdgeDB instance)
+├── Gel database (local Gel instance)
 ├── Vite dev server (localhost:5173)
 │   ├── React Router (SSR + RSC)
 │   ├── Railway GraphQL API client
@@ -185,8 +185,8 @@ Using Effect for:
 
 Gel has official Effect integration guides:
 
-- https://www.edgedb.com/blog/building-with-effect-and-edgedb-part-1
-- https://www.edgedb.com/blog/building-with-effect-and-edgedb-part-2
+- https://www.geldata.com/blog/building-with-effect-and-gel-part-1
+- https://www.geldata.com/blog/building-with-effect-and-gel-part-2
 
 # Appendix
 
@@ -201,7 +201,7 @@ Gel has official Effect integration guides:
 **Phase 2 (Future):** Hosted service
 
 - Deploy Maglev to Railway/Vercel
-- Shared Gel database (EdgeDB Cloud)
+- Shared Gel database (Gel Cloud)
 - Multi-user with authentication
 - User accounts and project sharing
 

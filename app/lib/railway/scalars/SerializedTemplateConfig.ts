@@ -42,6 +42,7 @@ export type TemplateVolumeMount = {
 export const extractGitHubRepos = (config: SerializedTemplateConfig): string[] => {
   return Object.values(config.services)
     .map((service) => {
+      service.source
       if ('repo' in service.source) {
         return service.source.repo
       }

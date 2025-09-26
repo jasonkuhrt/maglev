@@ -20,9 +20,11 @@ export type Project = {
   createdAt: string
 }
 
+import { Settings as CoreSettings } from '#core/settings'
+
 export type Settings = {
   railwayApiToken: string
-  theme: 'light' | 'dark' | 'system'
+  theme: CoreSettings.Theme
 }
 
 export const templates: Template[] = [
@@ -100,5 +102,5 @@ export const projects: Project[] = [
 
 export const settings: Settings = {
   railwayApiToken: '',
-  theme: 'system',
+  theme: CoreSettings.Theme.system,
 }
