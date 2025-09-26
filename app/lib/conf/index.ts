@@ -8,12 +8,7 @@
 export { Conf, type ConfOptions, create, type LoadOptions } from './loader.js'
 
 // Errors
-export {
-  ConfigError,
-  ConfigNotFoundError,
-  ConfigParseError,
-  ConfigValidationError,
-} from './errors.js'
+export { ConfigError, ConfigNotFoundError, ConfigParseError, ConfigValidationError } from './errors.js'
 
 // Parsers
 export { defaultParsers, getParser, jsoncParser, jsonParser, type Parser } from './parsers.js'

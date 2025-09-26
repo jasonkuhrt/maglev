@@ -10,6 +10,10 @@
 /graffle/
 /app/lib/**/__generated__/
 
+# Gel (EdgeDB)
+/app/core/gel/__generated__/
+gel.local.toml
+
 # sandbox (user scratch space)
 /sandbox/
 !/sandbox/.templates/

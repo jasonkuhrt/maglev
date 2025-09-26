@@ -48,7 +48,9 @@ export const TemplateCard: React.FC<Props> = ({ template, services, githubRepos 
         </Text>
         {services.length > 0 && (
           <Text size='1' style={{ textTransform: 'uppercase', letterSpacing: 'var(--letter-spacing-normal)' }}>
-            {services.map(s => s.name).join(' · ')}
+            {services.map(s =>
+              s.name
+            ).join(' · ')}
           </Text>
         )}
         {githubRepos.length > 0 && (

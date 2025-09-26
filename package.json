@@ -17,6 +17,7 @@
     "gen": "pnpm run '/^gen:.*/'",
     "gen:routes": "react-router typegen",
     "gen:railway": "graffle",
+    "gen:gel": "npx @edgedb/generate edgeql-js --output-dir ./app/core/gel/__generated__",
     "fix": "pnpm run '/^fix:.*/'",
     "fix:format": "dprint fmt",
     "check": "pnpm run '/^check:.*/'",

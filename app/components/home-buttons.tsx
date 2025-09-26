@@ -21,7 +21,11 @@ export function HomeButtons() {
             e.currentTarget.style.backgroundColor = ''
           }}
         >
-          <Text size='3' weight='bold' style={{ textTransform: 'uppercase', letterSpacing: 'var(--letter-spacing-normal)' }}>
+          <Text
+            size='3'
+            weight='bold'
+            style={{ textTransform: 'uppercase', letterSpacing: 'var(--letter-spacing-normal)' }}
+          >
             → Browse Templates
           </Text>
         </Box>
@@ -42,7 +46,11 @@ export function HomeButtons() {
             e.currentTarget.style.backgroundColor = ''
           }}
         >
-          <Text size='3' weight='bold' style={{ textTransform: 'uppercase', letterSpacing: 'var(--letter-spacing-normal)' }}>
+          <Text
+            size='3'
+            weight='bold'
+            style={{ textTransform: 'uppercase', letterSpacing: 'var(--letter-spacing-normal)' }}
+          >
             → View Projects
           </Text>
         </Box>

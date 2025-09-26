@@ -2,12 +2,7 @@ import { Ef, Op, pipe, Sc } from '#deps/effect'
 import { FileSystem } from '@effect/platform'
 import { Fs, FsLoc, Resource } from '@wollybeard/kit'
 import path from 'node:path'
-import {
-  ConfigError,
-  ConfigNotFoundError,
-  ConfigParseError,
-  ConfigValidationError,
-} from './errors.js'
+import { ConfigError, ConfigNotFoundError, ConfigParseError, ConfigValidationError } from './errors.js'
 import { defaultParsers, type Parser } from './parsers.js'
 import { searchConfig, searchInXdg, type SearchResult } from './search.js'
 
@@ -45,7 +40,6 @@ export interface ConfOptions<Input, Output> {
    */
   defaults?: () => Output
 
-
   /**
    * Custom parsers for different file formats
    */
@@ -71,12 +65,10 @@ export interface LoadOptions {
    */
   cwd?: string
 
-
   /**
    * Validate against schema
    */
   checkSchema?: boolean
-
 
   /**
    * Stop searching at this directory
@@ -125,10 +117,16 @@ export class Conf<Input = unknown, Output = Input> {
       Ef.flatMap((globalConfig) =>
         pipe(
           // Search for local config
-          searchConfig(this.options.name, this.options.searchPlaces, FsLoc.AbsDir.fromString(cwd as '/'), this.options.parsers, {
-            ...(this.options.packageJsonKey !== undefined && { packageJsonKey: this.options.packageJsonKey }),
-            ...(stopAt !== undefined && { stopAt }),
-          }),
+          searchConfig(
+            this.options.name,
+            this.options.searchPlaces,
+            FsLoc.AbsDir.fromString(cwd as '/'),
+            this.options.parsers,
+            {
+              ...(this.options.packageJsonKey !== undefined && { packageJsonKey: this.options.packageJsonKey }),
+              ...(stopAt !== undefined && { stopAt }),
+            },
+          ),
           Ef.catchAll((error): Ef.Effect<SearchResult, ConfigError | ConfigParseError, FileSystem.FileSystem> => {
             // If no local config found, use global or defaults
             if (error instanceof ConfigNotFoundError) {
@@ -156,7 +154,11 @@ export class Conf<Input = unknown, Output = Input> {
           ),
         )
       ),
-    ) as Ef.Effect<Output, ConfigError | ConfigNotFoundError | ConfigParseError | ConfigValidationError, FileSystem.FileSystem>
+    ) as Ef.Effect<
+      Output,
+      ConfigError | ConfigNotFoundError | ConfigParseError | ConfigValidationError,
+      FileSystem.FileSystem
+    >
   }
 
   /**

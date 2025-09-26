@@ -12,9 +12,7 @@ export class Context extends Ctx.Tag('RailwayClient')<
 /**
  * Live implementation of Railway client
  */
-export const ContextLive = Lr.effect(Context,
-  Ef.sync(() => Railway.create())
-)
+export const ContextLive = Lr.effect(Context, Ef.sync(() => Railway.create()))
 
 /**
  * Wrapper for Graffle operations that handles common error patterns

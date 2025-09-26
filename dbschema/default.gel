@@ -1,0 +1,16 @@
+module default {
+  type Project {
+    required name: str;
+    required templateId: str;  # Railway template ID
+    required railwayProjectId: str;
+    railwayServiceId: str;
+    railwayEnvironmentId: str;
+    required createdAt: datetime {
+      default := datetime_current();
+    }
+    updatedAt: datetime;
+
+    index on (.createdAt);
+    constraint exclusive on (.railwayProjectId);
+  }
+}

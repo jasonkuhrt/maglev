@@ -2,9 +2,9 @@
 
 import { HeadingPage } from '#components/heading-page'
 import { TemplateCard } from '#components/template-card'
-import type { Template, Templates } from '../routes/_market/operations'
 import { Box, Container, Grid, Text } from '@radix-ui/themes'
 import { extractGitHubRepos } from '../lib/railway/scalars/SerializedTemplateConfig'
+import type { Template, Templates } from '../routes/_market/operations'
 
 interface MarketContentProps {
   templates: Templates
@@ -39,7 +39,9 @@ export function MarketContent({ templates, error }: MarketContentProps) {
           <Grid columns={{ initial: '1', md: '2' }} gap='1' style={{ border: '1px solid var(--gray-12)' }}>
             {templates.map((template: Template) => {
               const githubRepos = template.serializedConfig ? extractGitHubRepos(template.serializedConfig) : []
-              const services = template.serializedConfig ? Object.values(template.serializedConfig.services) as Array<{ name: string }> : []
+              const services = template.serializedConfig
+                ? Object.values(template.serializedConfig.services) as Array<{ name: string }>
+                : []
 
               return (
                 <TemplateCard

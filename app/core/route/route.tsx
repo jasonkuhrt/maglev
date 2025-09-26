@@ -216,19 +216,3 @@ export const Server = <Props = {}>(
     )
   }
 }
-
-// ================
-// NAMESPACE EXPORT
-// ================
-
-export const Route = {
-  // Context tags
-  Request,
-  FormData,
-  Params,
-  Context,
-  // Functions
-  action,
-  loader,
-  Server,
-} as const

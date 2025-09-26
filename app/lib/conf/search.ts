@@ -120,9 +120,7 @@ export const searchInFiles = (
     (acc, fileName) =>
       pipe(
         acc,
-        Ef.flatMap((result) =>
-          Op.isSome(result) ? Ef.succeed(result as Op.Option<SearchResult>) : tryFile(fileName)
-        ),
+        Ef.flatMap((result) => Op.isSome(result) ? Ef.succeed(result as Op.Option<SearchResult>) : tryFile(fileName)),
       ),
     Ef.succeed(Op.none()) as Ef.Effect<Op.Option<SearchResult>, ConfigError | ConfigParseError, FileSystem.FileSystem>,
   )

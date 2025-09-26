@@ -3,7 +3,7 @@ import { Route } from '#core/route'
 import { Ef, Ei } from '#deps/effect'
 import { fetchTemplates } from './_market/operations'
 
-export const ServerComponent = Route.Server(function* () {
+export const ServerComponent = Route.Server(function*() {
   const result = yield* fetchTemplates.pipe(Ef.either)
 
   if (Ei.isLeft(result)) {

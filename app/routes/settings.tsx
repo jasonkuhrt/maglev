@@ -5,10 +5,10 @@ import { Ef, Op } from '#deps/effect'
 
 export const action = Route.action(function*() {
   const formData = yield* Route.FormData
-  const gelDsn = String(formData.get('gelDsn'))
+  const gelDsn = String(formData.get('gelDsn') || '')
 
   const service = yield* Config.ConfigService
-  yield* service.write(Config.Config.make({ gelDsn }))
+  yield* service.write(Config.Config.make(gelDsn ? { gelDsn } : {}))
 
   return { success: true }
 })
@@ -19,7 +19,7 @@ export const ServerComponent = Route.Server(function*() {
 
   const gelDsn = Op.match(config, {
     onNone: () => '',
-    onSome: (c) => c.gelDsn,
+    onSome: (c) => c.gelDsn || '',
   })
 
   return <SettingsContent gelDsn={gelDsn} />
