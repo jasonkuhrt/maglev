@@ -9,21 +9,12 @@
 
 ```
 app/
-├── routes/           # React Router routes
-├── lib/              # Local libraries
-│   ├── env/          # Environment variable utilities
-│   └── railway/      # Railway client
-│       ├── $.ts      # Namespace export
-│       ├── railway.ts # Client implementation
-│       └── __generated__/ # Graffle generated types (gitignored)
-├── deps/
-│   └── effect.ts     # Effect namespace re-exports (Ef, Op, Sc, Da)
-└── data/             # Mock data (temporary)
-sandbox/              # Developer scratch space (gitignored)
-└── .templates/       # Template files (tracked in git)
-    └── railway.ts    # Railway API playground template
-.react-router/        # Generated route types (gitignored)
-graffle.config.ts     # Railway schema generation config
+├── routes/           # UI
+├── components/       # Local component library
+├── core/             # Business logic
+├── lib/              # Local libraries decoupled from business logic
+├── deps/             # Re-exports of deps (aliasing exports, augmenting with new exports, ...)
+├── sandbox/          # Developer scratch space (gitignored)
 ```
 
 ## Tool Resources

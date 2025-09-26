@@ -42,5 +42,8 @@
     "app/**/*.tsx",
     "./.react-router/types/**/*",
     "*.ts"
+  ],
+  "exclude": [
+    "app/core/gel/generated/**/*"
   ]
 }

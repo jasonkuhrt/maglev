@@ -1,3 +1,5 @@
+'use client'
+
 import { CubeIcon, DashboardIcon, GearIcon } from '@radix-ui/react-icons'
 import { Box, Flex, Text } from '@radix-ui/themes'
 import { useLocation } from 'react-router'
@@ -6,7 +8,7 @@ import { Link } from './link'
 export const Sidebar: React.FC = () => {
   const location = useLocation()
 
-  const isActive = (path: string) => location.pathname === path || (path === '/' && location.pathname === '/')
+  const isActive = (path: string) => location.pathname === path
 
   return (
     <Box
@@ -37,12 +39,12 @@ export const Sidebar: React.FC = () => {
       </Box>
 
       <Flex direction='column' style={{ flex: 1 }}>
-        <Link to='/' underline='none'>
+        <Link to='/market' underline='none'>
           <Flex align='center' gap='3' p='4' style={{ borderBottom: '1px solid var(--gray-12)' }}>
             <CubeIcon width='16' height='16' />
             <Text
               size='1'
-              weight={isActive('/') ? 'bold' : 'regular'}
+              weight={isActive('/market') ? 'bold' : 'regular'}
               style={{ textTransform: 'uppercase', letterSpacing: 'var(--letter-spacing-normal)' }}
             >
               Market
