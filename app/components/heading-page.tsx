@@ -1,8 +1,8 @@
 import { Heading } from '@radix-ui/themes'
-import type { ComponentProps } from 'react'
+import type { ComponentPropsWithoutRef } from 'react'
 import { forwardRef } from 'react'
 
-type Props = ComponentProps<typeof Heading>
+type Props = ComponentPropsWithoutRef<typeof Heading>
 
 export const HeadingPage = forwardRef<HTMLHeadingElement, Props>(({ style, size = '8', ...props }, ref) => {
   return (

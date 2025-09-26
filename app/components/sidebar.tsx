@@ -2,14 +2,9 @@
 
 import { CubeIcon, DashboardIcon, GearIcon } from '@radix-ui/react-icons'
 import { Box, Flex, Text } from '@radix-ui/themes'
-import { useLocation } from 'react-router'
 import { Link } from './link'
 
 export const Sidebar: React.FC = () => {
-  const location = useLocation()
-
-  const isActive = (path: string) => location.pathname === path
-
   return (
     <Box
       style={{
@@ -44,7 +39,6 @@ export const Sidebar: React.FC = () => {
             <CubeIcon width='16' height='16' />
             <Text
               size='1'
-              weight={isActive('/market') ? 'bold' : 'regular'}
               style={{ textTransform: 'uppercase', letterSpacing: 'var(--letter-spacing-normal)' }}
             >
               Market
@@ -56,7 +50,6 @@ export const Sidebar: React.FC = () => {
             <DashboardIcon width='16' height='16' />
             <Text
               size='1'
-              weight={isActive('/dashboard') ? 'bold' : 'regular'}
               style={{ textTransform: 'uppercase', letterSpacing: 'var(--letter-spacing-normal)' }}
             >
               Dashboard
@@ -70,8 +63,7 @@ export const Sidebar: React.FC = () => {
           <GearIcon width='16' height='16' />
           <Text
             size='1'
-            weight={isActive('/settings') ? 'bold' : 'regular'}
-            style={{ textTransform: 'uppercase', letterSpacing: '0.05em' }}
+            style={{ textTransform: 'uppercase', letterSpacing: 'var(--letter-spacing-normal)' }}
           >
             Settings
           </Text>

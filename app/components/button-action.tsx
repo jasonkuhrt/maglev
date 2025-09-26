@@ -1,8 +1,8 @@
 import { Button } from '@radix-ui/themes'
-import type { ComponentProps } from 'react'
+import type { ComponentPropsWithoutRef } from 'react'
 import { forwardRef } from 'react'
 
-type Props = ComponentProps<typeof Button>
+type Props = ComponentPropsWithoutRef<typeof Button>
 
 export const ButtonAction = forwardRef<HTMLButtonElement, Props>(({ style, ...props }, ref) => {
   return (

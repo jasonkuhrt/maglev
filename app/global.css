@@ -41,6 +41,11 @@ body {
     --letter-spacing-wide: 0.1em;
 }
 
+/* Active link styles */
+[data-active="true"] .rt-Text {
+    font-weight: bold;
+}
+
 /**
  * Radix Themes CSS Variable Reference
  *
