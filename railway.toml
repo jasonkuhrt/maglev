@@ -1,5 +1,5 @@
 [build]
-buildCommand = "pnpm install --frozen-lockfile && pnpm run gen && pnpm run build"
+buildCommand = "pnpm install --frozen-lockfile && pnpm run gen:css && pnpm run gen:routes && pnpm run gen:railway && pnpm run gen:gel:ci && pnpm run build"
 
 [deploy]
 startCommand = "pnpm run start"

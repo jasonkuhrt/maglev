@@ -21,6 +21,7 @@
     "gen:routes": "react-router typegen",
     "gen:railway": "graffle",
     "gen:gel": "gel generate js/edgeql-js --instance maglev --target esm --output-dir ./node_modules/@gel/client --force-overwrite && echo '{\"name\":\"@gel/client\",\"type\":\"module\",\"exports\":{\".\":{\"types\":\"./index.d.ts\",\"import\":\"./index.mjs\"}}}' > ./node_modules/@gel/client/package.json",
+    "gen:gel:ci": "./scripts/gen-gel-ci.sh",
     "fix": "pnpm run '/^fix:.*/'",
     "fix:format": "dprint fmt",
     "check": "pnpm run '/^check:.*/'",
