@@ -168,6 +168,19 @@ const provideActionContext = <R, E, A>(
  * @param fn Effect generator or Effect that processes the action
  * @returns React Router action function
  *
+ * @example Simple redirect with vanilla function
+ * ```typescript
+ * export const action = Route.action(() => redirect('/success'))
+ * ```
+ *
+ * @example Return JSON with vanilla async function
+ * ```typescript
+ * export const action = Route.action(async () => {
+ *   const result = await processData()
+ *   return Response.json({ success: true, data: result })
+ * })
+ * ```
+ *
  * @example Form submission with validation
  * ```typescript
  * const LaunchTemplateSchema = Sc.Struct({
@@ -199,7 +212,16 @@ const provideActionContext = <R, E, A>(
  * })
  * ```
  *
- * @example API endpoint returning JSON
+ * @example API endpoint with vanilla function
+ * ```typescript
+ * export const action = Route.action(() => {
+ *   // Simple processing without Effect services
+ *   const timestamp = Date.now()
+ *   return Response.json({ processed: true, timestamp })
+ * })
+ * ```
+ *
+ * @example API endpoint with generator and services
  * ```typescript
  * export const action = Route.action(function*() {
  *   const railway = yield* Railway.Context

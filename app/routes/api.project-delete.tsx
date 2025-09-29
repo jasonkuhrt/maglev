@@ -27,7 +27,12 @@ export const action = Route.action(function*() {
         filter_single: Gel.$.op(p.id, '=', Gel.$.uuid(projectId)),
         owner: { id: true },
       })).run(gel.client),
-    catch: (cause) => new Error('Failed to fetch project', { cause }),
+    catch: (cause) =>
+      new Gel.Errors.DatabaseOperationError({
+        operation: 'select',
+        table: 'Project',
+        cause,
+      }),
   })
 
   if (!project) {
@@ -62,7 +67,11 @@ export const action = Route.action(function*() {
       })).run(gel.client)
     },
     catch: (cause) => {
-      return new Error('Failed to delete project from database', { cause })
+      return new Gel.Errors.DatabaseOperationError({
+        operation: 'delete',
+        table: 'Project',
+        cause,
+      })
     },
   })
 

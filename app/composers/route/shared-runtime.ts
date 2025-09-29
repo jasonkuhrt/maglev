@@ -4,6 +4,7 @@ import { Session } from '#core/session'
 import { Settings } from '#core/settings'
 import { Ef, Lr } from '#deps/effect'
 import { Railway } from '#lib/railway'
+import { FileSystem } from '@effect/platform'
 import * as NodeFileSystem from '@effect/platform-node/NodeFileSystem'
 
 /**
@@ -44,6 +45,14 @@ export const createRouteRuntime = (requestInfo: Session.RequestInfoData) => {
  */
 export const provideRouteServices = (requestInfo: Session.RequestInfoData) => {
   const runtime = createRouteRuntime(requestInfo)
-  return <R, E, A>(effect: Ef.Effect<A, E, R>): Ef.Effect<A, E, Exclude<R, Config.ConfigService | Gel.Client | Settings.Service | Session.Context | Railway.Context | FileSystem.FileSystem>> =>
-    effect.pipe(Ef.provide(runtime))
+  return <R, E, A>(
+    effect: Ef.Effect<A, E, R>,
+  ): Ef.Effect<
+    A,
+    E,
+    Exclude<
+      R,
+      Config.ConfigService | Gel.Client | Settings.Service | Session.Context | Railway.Context | FileSystem.FileSystem
+    >
+  > => effect.pipe(Ef.provide(runtime))
 }

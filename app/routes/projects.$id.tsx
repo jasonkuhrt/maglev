@@ -43,7 +43,12 @@ export const ServerComponent = Route.Server(function*() {
           description: true,
         },
       })).run(gel.client),
-    catch: (cause) => new Error('Failed to load project', { cause }),
+    catch: (cause) =>
+      new Gel.Errors.DatabaseOperationError({
+        operation: 'select',
+        table: 'Project',
+        cause,
+      }),
   }).pipe(
     Ef.catchAll(() => Ef.succeed(null)),
   )
@@ -125,7 +130,11 @@ export const ServerComponent = Route.Server(function*() {
             },
           },
         }),
-      catch: (cause) => new Error('Failed to load Railway project data', { cause }),
+      catch: (cause) =>
+        new Railway.Errors.RailwayError({
+          message: 'Failed to load Railway project data',
+          cause,
+        }),
     }).pipe(
       Ef.catchAll(() => Ef.succeed(null)),
     )

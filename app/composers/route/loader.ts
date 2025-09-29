@@ -82,7 +82,28 @@ export const defaultLoader = async (args: LoaderArgs) => ({
  * @param fn Optional Effect generator or Effect that produces loader data
  * @returns React Router loader function
  *
- * @example Basic loader with authentication check
+ * @example Simple redirect with vanilla function
+ * ```typescript
+ * export const loader = Route.loader(() => redirect('/'))
+ * ```
+ *
+ * @example Return static data with vanilla function
+ * ```typescript
+ * export const loader = Route.loader(() => ({
+ *   title: 'Welcome',
+ *   timestamp: Date.now()
+ * }))
+ * ```
+ *
+ * @example Async data fetch with vanilla async function
+ * ```typescript
+ * export const loader = Route.loader(async () => {
+ *   const response = await fetch('/api/data')
+ *   return response.json()
+ * })
+ * ```
+ *
+ * @example Authentication check with generator function
  * ```typescript
  * export const loader = Route.loader(function*() {
  *   const session = yield* Session.Context
@@ -120,6 +141,17 @@ export const defaultLoader = async (args: LoaderArgs) => ({
  * ```typescript
  * // Just passes request info to ServerComponent
  * export const loader = Route.loader()
+ * ```
+ *
+ * @example Conditional redirect with vanilla function
+ * ```typescript
+ * export const loader = Route.loader(() => {
+ *   const isAuthenticated = checkAuthCookie()
+ *   if (!isAuthenticated) {
+ *     return redirect('/login')
+ *   }
+ *   return { authenticated: true }
+ * })
  * ```
  *
  * @example Handling optional authentication

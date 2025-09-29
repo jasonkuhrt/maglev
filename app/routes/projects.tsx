@@ -28,7 +28,12 @@ export const ServerComponent = Route.Server(function*() {
         },
         order_by: { expression: project.createdAt, direction: Gel.$.DESC },
       })).run(gel.client),
-    catch: (cause) => new Error('Failed to load projects', { cause }),
+    catch: (cause) =>
+      new Gel.Errors.DatabaseOperationError({
+        operation: 'select',
+        table: 'Project',
+        cause,
+      }),
   })
 
   // Enrich projects with Railway data to determine status
@@ -70,7 +75,11 @@ export const ServerComponent = Route.Server(function*() {
                 },
               },
             }),
-          catch: (cause) => new Error('Failed to fetch Railway data', { cause }),
+          catch: (cause) =>
+            new Railway.Errors.RailwayError({
+              message: 'Failed to fetch Railway data',
+              cause,
+            }),
         }).pipe(
           Ef.catchAll(() => Ef.succeed(null)),
         )

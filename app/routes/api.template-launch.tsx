@@ -35,7 +35,7 @@ export const action = Route.action(function*() {
   )
 
   if (!userSettings.railwayApiToken) {
-    throw new Error('Railway API token not configured. Please add your token in Settings.')
+    return yield* Ef.fail(new Railway.RailwayApiTokenError())
   }
 
   // Get workspace ID (REQUIRED for template deployment)
@@ -62,10 +62,10 @@ export const action = Route.action(function*() {
       return workspace.id
     },
     catch: (cause) => {
-      return new Error(
-        `Failed to get workspace from Railway API. Please check your Railway API token has proper permissions.`,
-        { cause },
-      )
+      return new Railway.WorkspaceNotFoundError({
+        message:
+          'No workspace found for this Railway account. Please ensure your Railway API token has access to at least one workspace.',
+      })
     },
   })
 
@@ -81,8 +81,7 @@ export const action = Route.action(function*() {
         serializedConfig: true, // Get the serialized config for v2 deployment
       }),
     catch: (cause) => {
-      // new Error('Failed to query template', { cause: error })
-      return new Error('Failed to query template from Railway:', { cause })
+      return new Railway.TemplateNotFoundError({ templateCode, cause })
     },
   })
 
@@ -92,7 +91,12 @@ export const action = Route.action(function*() {
       Gel.$.select(Gel.$.Template, template => ({
         filter_single: Gel.$.op(template.code, '=', templateCode),
       })).run(gel.client),
-    catch: (cause) => new Error('Failed to try getting existing template', { cause }),
+    catch: (cause) =>
+      new Gel.Errors.DatabaseOperationError({
+        operation: 'select',
+        table: 'Template',
+        cause,
+      }),
   })
 
   if (!existingTemplate) {
@@ -103,7 +107,12 @@ export const action = Route.action(function*() {
           name: templateName,
           createdAt: new Date(),
         }).run(gel.client),
-      catch: (cause) => new Error(`Failed to store template`, { cause }),
+      catch: (cause) =>
+        new Gel.Errors.DatabaseOperationError({
+          operation: 'insert',
+          table: 'Template',
+          cause,
+        }),
     })
   }
 
@@ -122,7 +131,12 @@ export const action = Route.action(function*() {
         workflowId: true,
       }),
     catch: (cause: any) => {
-      return new Error('Failed to deploy template', { cause })
+      return new Railway.TemplateDeploymentError({
+        templateCode,
+        workspaceId,
+        message: 'Failed to deploy template',
+        cause,
+      })
     },
   })
 
@@ -147,7 +161,12 @@ export const action = Route.action(function*() {
         createdAt: new Date(),
         // No status field - Railway is the source of truth for deployment status
       }).run(gel.client),
-    catch: (cause) => new Error(`Failed to store project`, { cause }),
+    catch: (cause) =>
+      new Gel.Errors.DatabaseOperationError({
+        operation: 'insert',
+        table: 'Project',
+        cause,
+      }),
   })
 
   // No polling needed - Railway maintains the deployment status

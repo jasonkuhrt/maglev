@@ -24,3 +24,21 @@ export class ValidationError extends Da.TaggedError('ValidationError')<{
   readonly field?: string
   readonly value?: unknown
 }> {}
+
+/**
+ * Error for unauthorized access to resources
+ */
+export class UnauthorizedError extends Da.TaggedError('UnauthorizedError')<{
+  readonly resource: string
+  readonly userId: string
+  readonly ownerId?: string
+}> {}
+
+/**
+ * Error for database operations
+ */
+export class DatabaseOperationError extends Da.TaggedError('DatabaseOperationError')<{
+  readonly operation: 'insert' | 'update' | 'delete' | 'select'
+  readonly table: string
+  readonly cause?: unknown
+}> {}
