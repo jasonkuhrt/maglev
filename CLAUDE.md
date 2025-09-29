@@ -34,3 +34,36 @@ Available namespaces:
 - `Sc` - Schema
 
 This centralizes Effect imports and provides consistent short aliases across the codebase.
+
+## Error Handling with Effect
+
+### tryPromise Error Handling Rule
+
+**CRITICAL**: When using `Ef.tryPromise`, ALWAYS use proper cause chains in the catch handler. NEVER interpolate error messages directly.
+
+```typescript
+// ❌ WRONG - Loses error context through string interpolation
+yield * Ef.tryPromise({
+  try: () => someAsyncOperation(),
+  catch: (e) => new Error(`Failed to do something: ${e}`),
+})
+
+// ✅ CORRECT - Preserves full error context in cause chain
+yield * Ef.tryPromise({
+  try: () => someAsyncOperation(),
+  catch: (cause) => new Error('Failed to do something', { cause }),
+})
+```
+
+**Why this matters:**
+
+- Preserves the full error stack trace and context
+- Allows proper error debugging and logging
+- Prevents loss of critical error information
+- Maintains structured error handling throughout the application
+
+Always:
+
+- Use descriptive error messages without interpolation
+- Pass the caught error as the `cause` property
+- Name the catch parameter `cause` for consistency

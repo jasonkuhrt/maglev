@@ -1,5 +1,4 @@
-[gel]
-server-version = "5"
+[instance]
 
 [project]
 schema-dir = "./dbschema"

@@ -10,10 +10,13 @@
 ```
 sandbox/              # Developer scratch space (gitignored)
 app/
-├── routes/           # Application routes, handle requests and compose UI
+├── routes/           # Application routes (controllers), handle requests and orchestration
 ├── composers/        # Server Component helpers that orchestrate Effects + UI
 ├── components/       # Reusable UI components (client and server)
 ├── core/             # Business logic layer (Effects only, no React/JSX, no Promises)
+│   ├── bridges/      # Thin Effect wrappers for external systems (DB, APIs)
+│   ├── operations/   # Shared orchestration logic (extracted from routes when needed)
+│   └── support/      # Core-specific utilities and helpers
 ├── lib/              # Domain-agnostic utilities (could be extracted to packages)
 ├── deps/             # Re-exports of dependencies (aliasing, augmenting exports)
 ```
@@ -26,24 +29,38 @@ The project follows a strict import hierarchy to maintain clean architecture bou
 graph TD
     routes[routes/]
     composers[composers/]
-    core[core/]
+    bridges[core/bridges/]
+    operations[core/operations/]
+    support[core/support/]
     components[components/]
     lib[lib/]
     deps[deps/]
 
     routes --> composers
-    routes --> core
+    routes --> bridges
+    routes --> operations
     routes --> components
     routes --> lib
     routes --> deps
 
-    composers --> core
+    composers --> bridges
+    composers --> operations
+    composers --> support
     composers --> components
     composers --> lib
     composers --> deps
 
-    core --> lib
-    core --> deps
+    operations --> bridges
+    operations --> support
+    operations --> lib
+    operations --> deps
+
+    bridges --> support
+    bridges --> lib
+    bridges --> deps
+
+    support --> lib
+    support --> deps
 
     components --> lib
     components --> deps
@@ -52,21 +69,25 @@ graph TD
 
     classDef topLevel fill:#e1f5fe
     classDef midLevel fill:#fff3e0
+    classDef coreLevel fill:#fce4ec
     classDef lowLevel fill:#f3e5f5
     classDef baseLevel fill:#e8f5e9
 
     class routes topLevel
-    class composers,core,components midLevel
+    class composers,components midLevel
+    class bridges,operations,support coreLevel
     class lib lowLevel
     class deps baseLevel
 ```
 
 **Import Rules:**
 
-- **`routes/`** → composers, core, components, lib, deps
-- **`composers/`** → core, components, lib, deps
+- **`routes/`** → composers, core/bridges, core/operations, core/support, components, lib, deps
+- **`composers/`** → core/bridges, core/operations, core/support, components, lib, deps
 - **`components/`** → lib, deps
-- **`core/`** → lib, deps
+- **`core/operations/`** → core/bridges, core/support, lib, deps
+- **`core/bridges/`** → core/support, lib, deps
+- **`core/support/`** → lib, deps
 - **`lib/`** → deps
 - **`deps/`** → (self-contained, foundation layer)
 - **Root `app/` files** → No restrictions
@@ -103,6 +124,125 @@ import type { Route } from '#composers/route'
 
 Check if a client component is importing server modules without the `type` keyword.
 
+## Core Architecture
+
+### Philosophy: Fat Routes, Thin Bridges
+
+This project follows a **fat routes** pattern where routes act as controllers, owning their orchestration logic and queries. We extract to shared layers only when duplication emerges.
+
+### Core Structure
+
+```
+core/
+├── bridges/          # Thin Effect wrappers for ALL external systems
+│   ├── db/           # EdgeDB/Gel Effect wrapper (our database)
+│   ├── railway/      # Railway GraphQL Effect wrapper
+│   └── stripe/       # Stripe API Effect wrapper (example)
+├── operations/       # Shared orchestration logic (extracted from routes)
+└── support/          # Core-specific utilities and helpers
+```
+
+### Layer Responsibilities
+
+#### Routes (Controllers)
+
+- **Own all orchestration logic** for their specific needs
+- **Build queries directly** using bridges
+- **Transform data** for their views
+- **Handle errors** specific to their context
+- **Start here** - only extract when patterns emerge
+
+#### Bridges
+
+- **Thin mechanical wrappers** that convert external APIs to Effects
+- **Transform errors** to domain error types
+- **Inject authentication** tokens or credentials
+- **Provide consistent interfaces** (all return Effects)
+- **NO business logic** - purely mechanical transformations
+
+#### Operations
+
+- **Extracted orchestration** shared between multiple routes
+- **Complex multi-step processes** that need isolation
+- **Reusable workflows** between routes and API endpoints
+- **Only create when needed** - avoid premature extraction
+
+#### Support
+
+- **Core-specific utilities** not general enough for lib/
+- **Domain helpers** used by operations and bridges
+- **Internal types and schemas** for core layer
+
+### When to Use Each Layer
+
+**Keep logic in routes when:**
+
+- It's specific to that route's needs
+- It's simple data fetching/transformation
+- It's unlikely to be reused
+- You're exploring/prototyping
+- The query shape is view-specific
+
+**Extract to operations when:**
+
+- Multiple routes need identical orchestration
+- API endpoints duplicate route logic
+- Complex multi-step processes emerge
+- Logic needs isolated testing
+- A clear workflow pattern emerges
+
+**Bridges should only:**
+
+- Wrap promises in Effects
+- Transform external errors to domain errors
+- Inject authentication/headers
+- Provide type-safe interfaces
+- Never contain business logic
+
+### Anti-patterns to Avoid
+
+❌ **Smart Bridges**
+
+```typescript
+// BAD - Business logic in bridge
+class RailwayBridge {
+  getTemplatesForMarketplace() { ... }  // View-specific method
+  getTemplatesWithStats() { ... }        // Combining multiple calls
+}
+```
+
+❌ **Premature Operations**
+
+```typescript
+// BAD - Single-use operation
+core / operations
+    / get - user - profile.ts // Only used by one route
+```
+
+❌ **View-aware Bridges**
+
+```typescript
+// BAD - Bridge knows about UI concerns
+db.project.findForDashboard() // Dashboard is a view concern
+```
+
+✅ **Correct Pattern**
+
+```typescript
+// Route owns orchestration
+export const ServerComponent = Route.Server(function*() {
+  // Build exact query needed
+  const templates = yield* railway.query.templates({
+    first: 50,
+    where: { active: true },
+  })
+
+  // Transform for view
+  const enriched = addMarketplaceMetadata(templates)
+  return <Marketplace templates={enriched} />
+})
+```
+
 ## Directory Rules
 
 ### Core
@@ -111,18 +251,32 @@ Check if a client component is importing server modules without the `type` keywo
 | --------------------------------------------------------------------------------------------------------- | -------------------------------------- |
 | No React/JSX                                                                                              | Pure business logic                    |
 | Return (meaning public API) Effects (not Promises)                                                        | Statically track errors, composability |
+| Bridges stay thin and mechanical                                                                          | Avoid business logic leak              |
+| Operations only for shared orchestration                                                                  | Avoid premature abstraction            |
 | Uses [lib-style layout](https://github.com/jasonkuhrt/claude/blob/main/docs/conventions/library-local.md) | Predictable imports                    |
 
 ### Lib-Style Import Convention
 
 When importing from modules that follow lib-style layout:
 
-- **External imports**: Use base path only (e.g., `import { Foo } from '#core/settings'`)
+- **External imports**: Use base path only (e.g., `import { Foo } from '#core/support/settings'`)
   - The module's `$.ts` exports the namespace
   - The module's `$$.ts` exports individual items
   - TypeScript resolves to the appropriate export via package.json exports field
 - **Never** append `/$.ts` or `/$$.ts` to import paths from outside the module
 - **Internal imports** (within same module): Can use `./$$.js` for barrel or `./$.js` for namespace
+
+### Bridge Import Examples
+
+```typescript
+// In routes
+import { db } from '#core/bridges/db'
+import { railway } from '#core/bridges/railway'
+
+// Use directly
+const project = yield* db.project.findById(id)
+const template = yield* railway.query.template({ id })
+```
 
 ## Tool Resources
 

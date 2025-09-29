@@ -9,6 +9,8 @@
 # Graffle
 /graffle/
 /app/lib/**/__generated__/
+/__generated__/
+.env
 
 # Gel
 /app/core/gel/__generated__/

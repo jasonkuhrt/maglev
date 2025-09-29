@@ -1,7 +1,30 @@
 module default {
   scalar type Theme extending enum<'light', 'dark', 'system'>;
 
+  type User {
+    required githubId: str {
+      constraint exclusive;
+    }
+    required username: str;
+    avatarUrl: str;
+    email: str;  # Only if user makes it public
+    required createdAt: datetime {
+      default := datetime_current();
+    }
+    lastLoginAt: datetime;
+
+    # Relations
+    multi projects := .<owner[is Project];
+    link settings := .<user[is Settings];
+
+    # Indexes
+    index on (.githubId);
+  }
+
   type Settings {
+    required user: User {
+      constraint exclusive;  # One settings per user
+    }
     railwayApiToken: str;  # Now nullable
     gelDsn: str;
     theme: Theme {
@@ -12,22 +35,48 @@ module default {
     }
     updatedAt: datetime;
 
-    # Ensure only one Settings record exists
-    constraint exclusive on (true);
+    # Indexes
+    index on (.user);
+  }
+
+  type Template {
+    required code: str {
+      constraint exclusive;
+    }
+    required name: str;
+    description: str;
+    serializedConfig: json;  # Railway template configuration
+    serviceCount: int16 {
+      default := 0;
+    }
+    githubRepos: array<str>;
+    required createdAt: datetime {
+      default := datetime_current();
+    }
+    updatedAt: datetime;
+
+    index on (.code);
   }
 
   type Project {
     required name: str;
-    required templateId: str;  # Railway template ID
-    required railwayProjectId: str;
-    railwayServiceId: str;
-    railwayEnvironmentId: str;
+    owner: User;  # Link projects to users
+    template: Template;  # Link to Template
+    templateId: str;  # Template ID for reference
+    required railwayProjectId: str {
+      constraint exclusive;
+    }
+    # Railway is source of truth for status, deployment info, URLs, etc
+    # We only store stable references here
     required createdAt: datetime {
       default := datetime_current();
     }
     updatedAt: datetime;
 
     index on (.createdAt);
-    constraint exclusive on (.railwayProjectId);
+    index on (.railwayProjectId);
   }
+
+  # Removed DeploymentEvent - no longer tracking status changes
+  # Railway is the source of truth for all deployment information
 }

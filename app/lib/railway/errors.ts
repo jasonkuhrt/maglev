@@ -13,3 +13,18 @@ export class MissingApiTokenError extends Da.TaggedError('MissingApiTokenError')
     })
   }
 }
+
+export class RailwayError extends Da.TaggedError('RailwayError')<{
+  readonly message: string
+  readonly cause?: unknown
+}> {}
+
+export class RailwayApiTokenError extends Da.TaggedError('RailwayApiTokenError')<{
+  readonly message: string
+}> {
+  constructor() {
+    super({
+      message: 'Railway API token not configured. Set RAILWAY_API_TOKEN or configure in settings.',
+    })
+  }
+}

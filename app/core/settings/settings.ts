@@ -3,6 +3,7 @@ import { Ctx, Da, Ef, Lr } from '#deps/effect'
 
 export class SettingsError extends Da.TaggedError('SettingsError')<{
   readonly message: string
+  readonly cause?: unknown
 }> {}
 
 export type Theme = typeof Gel.$.Theme.__tstype__
@@ -15,32 +16,31 @@ export const Theme = {
 
 export interface Settings {
   railwayApiToken: string | null
-  gelDsn: string | null
   theme: Theme | null
 }
 
 export class Service extends Ctx.Tag('SettingsService')<
   Service,
   {
-    readonly read: Ef.Effect<Settings, SettingsError>
-    readonly write: (settings: Settings) => Ef.Effect<void, SettingsError>
+    readonly read: (userId: string) => Ef.Effect<Settings, SettingsError>
+    readonly write: (userId: string, settings: Settings) => Ef.Effect<void, SettingsError>
   }
 >() {}
 
 const defaultSettings: Settings = {
   railwayApiToken: null,
-  gelDsn: null,
   theme: Theme.system,
 }
 
 /**
- * Check if API key is configured in settings
+ * Check if API key is configured in settings for a user
  */
-export const hasApiKey = Ef.gen(function*() {
-  const settingsService = yield* Service
-  const settings = yield* settingsService.read
-  return settings.railwayApiToken !== null && settings.railwayApiToken !== ''
-})
+export const hasApiKey = (userId: string) =>
+  Ef.gen(function*() {
+    const settingsService = yield* Service
+    const settings = yield* settingsService.read(userId)
+    return settings.railwayApiToken !== null && settings.railwayApiToken !== ''
+  })
 
 export const ServiceLive = Lr.effect(
   Service,
@@ -48,54 +48,72 @@ export const ServiceLive = Lr.effect(
     const gel = yield* Gel.Client
     const client = gel.client
 
-    const read = Ef.tryPromise({
-      try: async () => {
-        const results = await Gel.$
-          .select(Gel.$.Settings, () => ({
-            railwayApiToken: true,
-            gelDsn: true,
-            theme: true,
-          }))
-          .run(client)
-
-        const result = results[0]
-
-        if (!result) {
-          return defaultSettings
-        }
-
-        return result
-      },
-      catch: (error) => new SettingsError({ message: `Failed to read settings: ${error}` }),
-    })
-
-    const write = (settings: Settings) =>
+    const read = (userId: string) =>
       Ef.tryPromise({
         try: async () => {
-          // Try to update first (most common case)
+          const user = await Gel.$
+            .select(Gel.$.User, (u) => ({
+              filter_single: Gel.$.op(u.githubId, '=', userId),
+              settings: {
+                railwayApiToken: true,
+                theme: true,
+              },
+            }))
+            .run(client)
+
+          if (!user?.settings) {
+            return defaultSettings
+          }
+
+          return user.settings
+        },
+        catch: (cause) => new SettingsError({ message: 'Failed to read settings', cause }),
+      })
+
+    const write = (userId: string, settings: Settings) =>
+      Ef.tryPromise({
+        try: async () => {
+          // First, ensure the user exists
+          const user = await Gel.$
+            .select(Gel.$.User, (u) => ({
+              filter_single: Gel.$.op(u.githubId, '=', userId),
+              id: true,
+            }))
+            .run(client)
+
+          if (!user) {
+            throw new Error(`User with githubId ${userId} not found`)
+          }
+
+          // Try to update existing settings
           const updateResult = await Gel.$
-            .update(Gel.$.Settings, () => ({
+            .update(Gel.$.Settings, (s) => ({
+              filter_single: Gel.$.op(s.user.githubId, '=', userId),
               set: {
                 railwayApiToken: settings.railwayApiToken,
-                gelDsn: settings.gelDsn,
                 theme: settings.theme,
                 updatedAt: new Date(),
               },
             }))
             .run(client)
 
-          // If no records were updated, create the first one
-          if (updateResult.length === 0) {
+          // If no settings exist for this user, create them
+          if (!updateResult) {
             await Gel.$
               .insert(Gel.$.Settings, {
+                user: Gel.$.select(Gel.$.User, (u) => ({
+                  filter_single: Gel.$.op(u.githubId, '=', userId),
+                })),
                 railwayApiToken: settings.railwayApiToken,
-                gelDsn: settings.gelDsn,
                 theme: settings.theme,
               })
               .run(client)
           }
         },
-        catch: (error) => new SettingsError({ message: `Failed to write settings: ${error}` }),
+        catch: (cause) => {
+          console.error('Settings write failed:', cause)
+          return new SettingsError({ message: 'Failed to write settings', cause })
+        },
       })
 
     return { read, write }

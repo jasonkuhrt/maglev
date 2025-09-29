@@ -65,8 +65,8 @@ export const ErrorDisplay: React.FC<Props> = ({ error, title, showHelp = true })
       const obj = err as Record<string, any>
 
       // If it has a message property, show it first
-      if ('message' in obj && typeof obj.message === 'string') {
-        details.push(`${indent}${obj.message}`)
+      if ('message' in obj && typeof obj['message'] === 'string') {
+        details.push(`${indent}${obj['message']}`)
 
         // Then show other properties
         Object.entries(obj).forEach(([key, value]) => {

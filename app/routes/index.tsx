@@ -1,9 +1,22 @@
-import { LinkButton } from '#components/button'
 import { Heading, Text } from '#components/typography'
+import { Route } from '#composers/route'
+import { Session } from '#core/session'
 import { Center, Container, styled, VStack } from '#styled-system/jsx'
-import { Heart } from 'lucide-react'
+import { Form, redirect } from 'react-router'
 
-export default function Index() {
+export const loader = Route.loader(function*() {
+  const session = yield* Session.Context
+  const user = yield* session.getUserMaybe()
+
+  // Redirect authenticated users to projects page
+  if (user) {
+    return redirect('/projects')
+  }
+
+  return null
+})
+
+export const ServerComponent = () => {
   return (
     <Center minH='100vh' p='40px'>
       <Container maxW='600px'>
@@ -21,37 +34,27 @@ export default function Index() {
             </Heading>
 
             <Text size='lg' marginBottom='40px'>
-              Your Railway platform management tool.
+              Your workflow orchestration
             </Text>
 
             <styled.div display='flex' gap='16px' justifyContent='center'>
-              <LinkButton to='/dashboard' variant='solid' size='lg'>
-                Go to Dashboard
-              </LinkButton>
-
-              <LinkButton to='/market' variant='outline' size='lg'>
-                Browse Templates
-              </LinkButton>
+              <Form method='post' action='/auth/login'>
+                <styled.button
+                  type='submit'
+                  bg='black'
+                  color='white'
+                  px='32px'
+                  py='12px'
+                  fontSize='lg'
+                  fontWeight='bold'
+                  border='2px solid black'
+                  cursor='pointer'
+                  _hover={{ bg: 'gray.900' }}
+                >
+                  Sign in with GitHub
+                </styled.button>
+              </Form>
             </styled.div>
-          </styled.div>
-
-          {/* Footer */}
-          <styled.div
-            borderTop='none'
-            border='2px solid black'
-            bg='black'
-            p='20px'
-            textAlign='center'
-            width='100%'
-            display='flex'
-            alignItems='center'
-            justifyContent='center'
-            gap='6px'
-          >
-            <Text size='sm' color='white' fontWeight='bold' style={{ margin: 0 }}>
-              Built in Montreal with
-            </Text>
-            <Heart size={14} fill='red' color='red' />
           </styled.div>
         </VStack>
       </Container>

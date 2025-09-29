@@ -21,8 +21,8 @@ importers:
         specifier: 0.9.0
         version: 0.9.0
       '@wollybeard/kit':
-        specifier: ^0.63.2
-        version: 0.63.2(@effect/platform@0.91.1(effect@3.17.14))(effect@3.17.14)
+        specifier: ^0.65.0
+        version: 0.65.0(@effect/platform@0.91.1(effect@3.17.14))(effect@3.17.14)
       edgedb:
         specifier: ^2.0.1
         version: 2.0.1
@@ -1015,6 +1015,9 @@ packages:
   '@types/node@24.5.2':
     resolution: {integrity: sha512-FYxk1I7wPv3K2XBaoyH2cTnocQEu8AOZ60hPbsyukMPLv5/5qr7V1i8PLHdl6Zf87I+xZXFvPCXYjiTFq+YSDQ==}
 
+  '@types/object-inspect@1.13.0':
+    resolution: {integrity: sha512-lwGTVESDDV+XsQ1pH4UifpJ1f7OtXzQ6QBOX2Afq2bM/T3oOt8hF6exJMjjIjtEWeAN2YAo25J7HxWh97CCz9w==}
+
   '@types/react-dom@19.1.9':
     resolution: {integrity: sha512-qXRuZaOsAdXKFyOhRBg6Lqqc0yay13vN7KrIg4L7N4aaHN68ma9OK3NE1BoDFgFOTfM7zg+3/8+2n8rLUH3OKQ==}
     peerDependencies:
@@ -1074,8 +1077,8 @@ packages:
   '@vue/shared@3.4.19':
     resolution: {integrity: sha512-/KliRRHMF6LoiThEy+4c1Z4KB/gbPrGjWwJR+crg2otgrf/egKzRaCPvJ51S5oetgsgXLfc4Rm5ZgrKHZrtMSw==}
 
-  '@wollybeard/kit@0.63.2':
-    resolution: {integrity: sha512-JIET23e92ci1YGn7vXvwjVeZJFhAYZ9m6TtReF05BTlTK9Ffi5dkbKW3Gt3gGaFWtbyKgv+voBCB9MS7p+ArFA==}
+  '@wollybeard/kit@0.65.0':
+    resolution: {integrity: sha512-ViEful/9HjS3/2yNlWgZJNXsoPl15R2ONX45wbnmiD7ezuRnn1Z2RK7lj1ieVKO3wyqvd/Pp3rnKdjfVdxq/jw==}
     peerDependencies:
       '@effect/platform': '>=0.90.0 <1.0.0'
       effect: ^3.17.0
@@ -1110,8 +1113,8 @@ packages:
     resolution: {integrity: sha512-4Dj6M28JB+oAH8kFkTLUo+a2jwOFkuqb3yucU0CANcRRUbxS0cP0nZYCGjcc3BNXwRIsUVmDGgzawme7zvJHvg==}
     engines: {node: '>=12'}
 
-  ansis@4.1.0:
-    resolution: {integrity: sha512-BGcItUBWSMRgOCe+SVZJ+S7yTRG0eGt9cXAHev72yuGcY23hnLA7Bky5L/xLyPINoSN95geovfBkqoTlNZYa7w==}
+  ansis@4.2.0:
+    resolution: {integrity: sha512-HqZ5rWlFjGiV0tDm3UxxgNRqsOTniqoKZu0pIAfh7TZQMGuZK+hH0drySty0si0QXj1ieop4+SkSfPZBPPkHig==}
     engines: {node: '>=14'}
 
   arg@5.0.2:
@@ -3637,6 +3640,8 @@ snapshots:
     dependencies:
       undici-types: 7.12.0
 
+  '@types/object-inspect@1.13.0': {}
+
   '@types/react-dom@19.1.9(@types/react@19.1.14)':
     dependencies:
       '@types/react': 19.1.14
@@ -3732,16 +3737,18 @@ snapshots:
 
   '@vue/shared@3.4.19': {}
 
-  '@wollybeard/kit@0.63.2(@effect/platform@0.91.1(effect@3.17.14))(effect@3.17.14)':
+  '@wollybeard/kit@0.65.0(@effect/platform@0.91.1(effect@3.17.14))(effect@3.17.14)':
     dependencies:
       '@effect/platform': 0.91.1(effect@3.17.14)
       '@types/node': 24.5.2
-      ansis: 4.1.0
+      '@types/object-inspect': 1.13.0
+      ansis: 4.2.0
       consola: 3.4.2
       effect: 3.17.14
       es-toolkit: 1.39.10
       fast-check: 4.3.0
       jsonc-parser: 3.3.1
+      object-inspect: 1.13.4
       pathe: 2.0.3
       tinyglobby: 0.2.15
       type-fest: 5.0.1
@@ -3777,7 +3784,7 @@ snapshots:
 
   ansi-styles@6.2.3: {}
 
-  ansis@4.1.0: {}
+  ansis@4.2.0: {}
 
   arg@5.0.2: {}
 

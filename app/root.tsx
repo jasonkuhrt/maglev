@@ -4,8 +4,10 @@ import { Sidebar } from '#blocks/sidebar'
 import { ErrorDisplay } from '#components/error-display'
 import { PageLayout } from '#components/page-layout'
 import { Heading } from '#components/typography'
-import type { Route } from '#composers/route'
+import { Route } from '#composers/route'
+import { Session } from '#core/session'
 import { Flex, styled } from '#styled-system/jsx'
+import { Err } from '@wollybeard/kit'
 import { isRouteErrorResponse, Links, Meta, Outlet, ScrollRestoration } from 'react-router'
 
 export const Layout: React.FC<React.PropsWithChildren> = ({ children }) => {
@@ -32,22 +34,37 @@ export const Layout: React.FC<React.PropsWithChildren> = ({ children }) => {
   )
 }
 
-export default function App() {
-  return (
-    <Flex>
-      <Sidebar />
-      <styled.div
-        marginLeft='{sizes.sidebar}'
-        width='calc(100% - {sizes.sidebar})'
-        minHeight='100vh'
-      >
-        <Outlet />
-      </styled.div>
-    </Flex>
-  )
-}
+export const loader = Route.loader()
+
+export const ServerComponent = Route.Server(function*() {
+  const session = yield* Session.Context
+  const user = yield* session.getUserMaybe()
+
+  // Show sidebar only when authenticated
+  if (user) {
+    return (
+      <Flex>
+        <Sidebar user={user} />
+        <styled.div
+          marginLeft='{sizes.sidebar}'
+          width='calc(100% - {sizes.sidebar})'
+          minHeight='100vh'
+        >
+          <Outlet />
+        </styled.div>
+      </Flex>
+    )
+  }
+
+  // No sidebar for unauthenticated users
+  return <Outlet />
+})
 
 export function ErrorBoundary({ error }: Route.ErrorBoundaryProps) {
+  if (import.meta.env.DEV) {
+    Err.log(new Error('Error Boundary', { cause: error }))
+  }
+
   let title = 'Error'
   let errorToDisplay: any = error
 
@@ -62,20 +79,25 @@ export function ErrorBoundary({ error }: Route.ErrorBoundaryProps) {
   }
 
   return (
-    <Flex>
-      <Sidebar />
-      <styled.div
-        marginLeft='{sizes.sidebar}'
-        width='calc(100% - {sizes.sidebar})'
-        minHeight='100vh'
-      >
-        <PageLayout maxWidth='sm'>
-          <Heading size='xl' caps marginBottom='24px'>
-            {title}
-          </Heading>
-          <ErrorDisplay error={errorToDisplay} showHelp={false} />
-        </PageLayout>
+    <PageLayout maxWidth='sm'>
+      <Heading size='xl' caps marginBottom='24px'>
+        {title}
+      </Heading>
+      <ErrorDisplay error={errorToDisplay} showHelp={false} />
+      <styled.div marginTop='32px' textAlign='center'>
+        <styled.a
+          href='/'
+          color='black'
+          textDecoration='underline'
+          fontSize='sm'
+          fontWeight='600'
+          textTransform='uppercase'
+          letterSpacing='0.05em'
+          _hover={{ textDecoration: 'none' }}
+        >
+          ← Back to Home
+        </styled.a>
       </styled.div>
-    </Flex>
+    </PageLayout>
   )
 }

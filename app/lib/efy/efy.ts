@@ -15,6 +15,9 @@ export type EffectOrGen<$A = any, $E = any, $R = any> =
  * and pre-constructed Effects. It checks if the input is a function (generator function)
  * and wraps it with Ef.gen, otherwise passes through the Effect as-is.
  *
+ * The function preserves the type parameters from EffectOrGen, ensuring that requirements
+ * are maintained through the transformation.
+ *
  * @example
  * ```typescript
  * // Works with generator functions
@@ -25,17 +28,20 @@ export type EffectOrGen<$A = any, $E = any, $R = any> =
  *
  * // Works with Effects
  * const effect2 = normalizeGenOrEffect(Ef.succeed('result'))
+ *
+ * // Preserves requirements
+ * const genWithReq: EffectOrGen<string, Error, ConfigService> = function*() {
+ *   const config = yield* ConfigService
+ *   return config.value
+ * }
+ * const normalized = normalizeGenOrEffect(genWithReq) // Effect<string, Error, ConfigService>
  * ```
  */
-// dprint-ignore
-type NormalizeGenOrEffect<T extends EffectOrGen> =
-    T extends (() => Generator<any, infer A, any>) ?  Ef.Effect<A, never, never> :
-    T extends Ef.Effect<infer A, infer E, infer R> ?  Ef.Effect<A, E, R> :
-                                                      never
-
-export const normalizeGenOrEffect = <T extends EffectOrGen>(
+export function normalizeGenOrEffect<T extends EffectOrGen<any, any, any>>(
   input: T,
-): NormalizeGenOrEffect<T> => {
+): T extends EffectOrGen<infer $A, infer $E, infer $R> ? Ef.Effect<$A, $E, $R> : never
+
+export function normalizeGenOrEffect(input: EffectOrGen<any, any, any>) {
   // Check if it's a function (generator function)
   if (typeof input === 'function') {
     return Ef.gen(input as any) as any

@@ -1,61 +1,22 @@
 import { Config } from '#core/config'
 import { Gel } from '#core/gel'
+import { Session } from '#core/session'
 import { Settings } from '#core/settings'
 import { Ctx, Ef, type Ei, Lr } from '#deps/effect'
 import { Efy } from '#lib/efy'
+import { Railway } from '#lib/railway'
 import { FileSystem } from '@effect/platform'
 import * as NodeFileSystem from '@effect/platform-node/NodeFileSystem'
 import * as React from 'react'
-
-// ================
-// CONTEXT TAGS
-// ================
-
-/**
- * Context tag for accessing the current request
- */
-export class Request extends Ctx.Tag('Route.Request')<Request, globalThis.Request>() {}
-
-/**
- * Context tag for accessing parsed form data
- */
-export class FormData extends Ctx.Tag('Route.FormData')<FormData, globalThis.FormData>() {}
-
-/**
- * Context tag for accessing route params
- */
-export class Params extends Ctx.Tag('Route.Params')<Params, Record<string, string | undefined>>() {}
-
-/**
- * Context tag for accessing the full route context
- */
-export class Context extends Ctx.Tag('Route.Context')<
-  Context,
-  {
-    request: globalThis.Request
-    params: Record<string, string | undefined>
-  }
->() {}
 
 // ================
 // RUNTIME
 // ================
 
 /**
- * Runtime for client-side code (loaders, actions, client components)
- * Includes all necessary service layers
- */
-const ClientRuntime = Lr.mergeAll(
-  NodeFileSystem.layer,
-  Config.ConfigServiceLive,
-  Gel.ClientLive,
-  Settings.ServiceLive,
-)
-
-/**
  * Runtime for server components
  * Includes all layers including Node.js-specific ones
- * Note: Railway.ContextLive excluded as it fails eagerly without API token
+ * Note: Railway.ContextLive provided separately after Session is available
  */
 const ServerRuntime = Lr.mergeAll(
   NodeFileSystem.layer,
@@ -72,167 +33,217 @@ export type ErrorBoundaryProps = {
   error: Error | unknown
 }
 
-type ActionArgs = {
-  request: globalThis.Request
-  params: Record<string, string | undefined>
-}
-
-type LoaderArgs = ActionArgs
-
-type ActionFunction<A> = (args: ActionArgs) => Ef.Effect<A, any, any>
-type LoaderFunction<A> = (args: LoaderArgs) => Ef.Effect<A, any, any>
-
 // ================
-// SHARED HELPERS
+// EXPORTS FROM OTHER MODULES
 // ================
 
-/**
- * Provides common route context services
- */
-const provideRouteContext = <R, E, A>(
-  effect: Ef.Effect<A, E, R>,
-  args: { request: globalThis.Request; params: Record<string, string | undefined> },
-  formDataService?: Ef.Effect<globalThis.FormData, any, any>,
-) => {
-  let pipeline = effect.pipe(
-    Ef.provideService(Request, args.request),
-    Ef.provideService(Params, args.params),
-    Ef.provideService(Context, {
-      request: args.request,
-      params: args.params,
-    }),
-  )
+// Action and its helper are from ./action.ts
+export { action, Args } from './action.js'
 
-  if (formDataService) {
-    pipeline = pipeline.pipe(Ef.provideServiceEffect(FormData, formDataService))
-  }
+// Context tags are from ./context.ts
+export { Context, FormData, Params, Request } from './context.js'
 
-  return pipeline.pipe(Ef.provide(ClientRuntime))
-}
+// Import Params for internal use
+import { Params } from './context.js'
 
-// ================
-// ACTION & LOADER
-// ================
-
-/**
- * Creates a React Router action with Effect runtime
- */
-export const action = <A,>(
-  fn: Efy.EffectOrGen<
-    A,
-    any,
-    Request | FormData | Params | Context | Config.ConfigService | FileSystem.FileSystem | Settings.Service
-  >,
-): (args: ActionArgs) => Promise<A> => {
-  return async (args: ActionArgs) => {
-    // Create FormData service that lazily loads form data
-    const formDataService = Ef.suspend(() =>
-      Ef.tryPromise({
-        try: () => args.request.formData(),
-        catch: (error) => new Error(`Failed to parse form data: ${error}`),
-      })
-    )
-
-    const effect = provideRouteContext(
-      Efy.normalizeGenOrEffect(fn),
-      args,
-      formDataService,
-    )
-
-    return Ef.runPromise(effect as Ef.Effect<A, never, never>).catch(e => e)
-  }
-}
-
-/**
- * Creates a React Router loader with Effect runtime
- */
-export const loader = <A,>(
-  fn: Efy.EffectOrGen<
-    A,
-    any,
-    Request | Params | Context | Config.ConfigService | FileSystem.FileSystem | Settings.Service
-  >,
-): (args: LoaderArgs) => Promise<A> => {
-  return async (args: LoaderArgs) => {
-    const effect = provideRouteContext(
-      Efy.normalizeGenOrEffect(fn),
-      args,
-    ).pipe(
-      // Convert to Either to handle both success and failure
-      Ef.either,
-    )
-
-    // Run the effect and get the Either result
-    const either = await Ef.runPromise(effect).catch(e => e)
-
-    // Handle the Either result
-    if (either._tag === 'Left') {
-      // For errors, return a serializable error object
-      const error = either.left
-      return {
-        _error: true,
-        message: error instanceof Error ? error.message : String(error),
-      } as A
-    }
-
-    // For success, return the value directly
-    return either.right
-  }
-}
+// Loader is from ./loader.ts
+export { loader } from './loader.js'
 
 // ================
 // SERVER COMPONENT
 // ================
 
+export type ComponentProps<TLoaderData = unknown> = {
+  params?: Record<string, string | undefined>
+  loaderData?: TLoaderData
+  request?: Request
+}
+
+type ServerComponentProps<TLoaderData = unknown> = ComponentProps<TLoaderData>
+
 /**
- * Creates a React Router server component with Effect runtime
- * Supports returning ReactNode (string, number, ReactElement, null, etc.)
- * undefined is converted to null for React compatibility
+ * Internal context tag for loader data
  */
-export const Server = (
+export class LoaderDataTag extends Ctx.Tag('Route.LoaderData')<LoaderDataTag, unknown>() {}
+
+/**
+ * Access typed loader data within a Server component
+ *
+ * @template T The type of your loader data
+ * @returns Effect context tag for accessing loader data
+ *
+ * @example
+ * ```typescript
+ * // In your loader
+ * export const loader = Route.loader(function*() {
+ *   return { user: { name: 'John' }, posts: [...] }
+ * })
+ *
+ * // In your Server component
+ * export const ServerComponent = Route.Server(function*() {
+ *   const data = yield* Route.LoaderData<{ user: User, posts: Post[] }>()
+ *   return <div>Welcome {data.user.name}!</div>
+ * })
+ * ```
+ */
+export const LoaderData = <T = unknown>() => LoaderDataTag as unknown as Ctx.Tag<'Route.LoaderData', T>
+
+/**
+ * Creates a server-side React component with full Effect runtime support
+ *
+ * Server components run on the server and have access to:
+ * - Session and authentication state
+ * - Database connections (EdgeDB via Gel.Client)
+ * - File system operations
+ * - External APIs (Railway)
+ * - Configuration and settings
+ * - Route parameters and loader data
+ *
+ * @template TLoaderData Type of data returned by the route's loader
+ * @param fn Effect generator function or Effect that produces the component
+ * @returns React functional component
+ *
+ * @example Basic usage
+ * ```typescript
+ * export const ServerComponent = Route.Server(function*() {
+ *   const session = yield* Session.Context
+ *   const user = yield* session.getUser()
+ *
+ *   return (
+ *     <PageLayout>
+ *       <h1>Welcome {user.username}!</h1>
+ *     </PageLayout>
+ *   )
+ * })
+ * ```
+ *
+ * @example With database access
+ * ```typescript
+ * export const ServerComponent = Route.Server(function*() {
+ *   const gel = yield* Gel.Client
+ *   const params = yield* Route.Params
+ *
+ *   const project = yield* Ef.tryPromise({
+ *     try: () => Gel.$.select(Gel.$.Project, p => ({
+ *       filter_single: Gel.$.op(p.id, '=', Gel.$.uuid(params.id)),
+ *       name: true,
+ *       createdAt: true
+ *     })).run(gel.client),
+ *     catch: (cause) => new Error('Failed to load project', { cause })
+ *   })
+ *
+ *   return <ProjectDetails project={project} />
+ * })
+ * ```
+ *
+ * @example With external API access
+ * ```typescript
+ * export const ServerComponent = Route.Server(function*() {
+ *   const railway = yield* Railway.Context
+ *
+ *   const templates = yield* Ef.tryPromise({
+ *     try: () => railway.query.templates({
+ *       $: { first: 50 },
+ *       edges: { node: { id: true, name: true } }
+ *     }),
+ *     catch: (cause) => new Error('Failed to load templates', { cause })
+ *   })
+ *
+ *   return <TemplateList templates={templates} />
+ * })
+ * ```
+ *
+ * @remarks
+ * - Always use yield* to access services from the Effect context
+ * - Errors are automatically handled by React Router's ErrorBoundary
+ * - undefined return values are converted to null for React compatibility
+ * - Session is automatically provided based on request cookies
+ */
+export const Server = <TLoaderData = unknown>(
   fn: Efy.EffectOrGen<
     React.ReactNode | undefined,
     any,
-    Config.ConfigService | FileSystem.FileSystem | Settings.Service
+    | Params
+    | Config.ConfigService
+    | FileSystem.FileSystem
+    | Settings.Service
+    | LoaderDataTag
+    | Session.RequestInfo
+    | Session.Context
+    | Gel.Client
+    | Railway.Context
   >,
-): React.FC => {
-  return async () => {
+): React.FC<ServerComponentProps<TLoaderData>> => {
+  return async (props) => {
     // Convert generator function to Effect if needed
-    const effect = Efy.normalizeGenOrEffect(fn).pipe(
-      // Provide server runtime layers (includes Config and Railway)
-      Ef.provide(ServerRuntime),
-      // Convert to Either to handle both success and failure
-      Ef.either,
+    const normalizedEffect = Efy.normalizeGenOrEffect(fn)
+
+    // Create the effect pipeline
+    let effect = normalizedEffect
+
+    // Provide params if available (before other layers)
+    if (props.params) {
+      effect = effect.pipe(
+        Ef.provideService(Params, props.params),
+      )
+    }
+
+    // Provide loader data if available
+    if (props.loaderData !== undefined && props.loaderData !== null) {
+      effect = effect.pipe(
+        Ef.provideService(LoaderDataTag, props.loaderData),
+      )
+    }
+
+    // Get request info from loader data - it MUST be there or we have a bug
+    const loaderData = props.loaderData as any
+
+    if (!loaderData?.request || typeof loaderData.request.url !== 'string') {
+      throw new Error(
+        `ServerComponent error: Missing request data in loader. `
+          + `LoaderData: ${JSON.stringify(loaderData)}. `
+          + `This is a bug in the Route abstraction - all loaders should provide request data.`,
+      )
+    }
+
+    const requestInfo: Session.RequestInfoData = loaderData.request
+
+    // Always provide Session.RequestInfo
+    effect = effect.pipe(
+      Ef.provideService(Session.RequestInfo, requestInfo),
     )
 
+    // Provide Session.Session service with user access methods
+    const sessionLayer = Session.SessionService.layer(requestInfo)
+
+    // Provide server runtime layers and convert to Either
+    // The provide operation satisfies all requirements, resulting in Effect<..., never, never>
+    const finalEffect = effect.pipe(
+      // First provide session and base runtime layers together
+      Ef.provide(Lr.mergeAll(ServerRuntime, sessionLayer)),
+      // Then provide Railway.ContextLive which depends on Session.Context
+      Ef.provide(Railway.ContextLive),
+      // Convert to Either to handle both success and failure
+      Ef.either,
+    ) as Ef.Effect<Ei.Either<React.ReactNode | undefined, any>, never, never>
+
     // Run the effect and get the Either result
-    const either = await Ef.runPromise(effect).catch(e => e)
+    const either = await Ef.runPromise(finalEffect).catch(e => e)
 
     // Handle the Either result
     if (either && typeof either === 'object' && '_tag' in either) {
       if (either._tag === 'Left') {
-        // For errors, return an error component
         const error = either.left
-        const message = error instanceof Error ? error.message : String(error)
-        return (
-          <div style={{ padding: '2rem', border: '1px solid red', backgroundColor: '#fee' }}>
-            <h2>Server Component Error</h2>
-            <p>{message}</p>
-          </div>
-        )
+        // Re-throw the error to let ErrorBoundary handle it
+        // This avoids duplicate error logging
+        throw error
       }
       // For success, return the component (convert undefined to null for React)
       const result = either.right
       return result === undefined ? null : result
     }
 
-    // Handle unexpected errors (including caught promise rejections)
-    const message = either instanceof Error ? either.message : 'An unexpected error occurred'
-    return (
-      <div style={{ padding: '2rem', border: '1px solid red', backgroundColor: '#fee' }}>
-        <h2>Server Component Error</h2>
-        <p>{message}</p>
-      </div>
-    )
+    // Handle unexpected errors - re-throw to ErrorBoundary
+    throw either instanceof Error ? either : new Error('An unexpected error occurred')
   }
 }
