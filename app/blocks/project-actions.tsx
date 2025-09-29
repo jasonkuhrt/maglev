@@ -24,7 +24,6 @@ export const ProjectActions = ({ projectId, railwayProjectId }: Props) => {
     }
 
     // Submit the delete request
-    console.log('Submitting delete request for project:', projectId)
     setError(null)
     fetcher.submit(
       {
@@ -41,27 +40,19 @@ export const ProjectActions = ({ projectId, railwayProjectId }: Props) => {
 
   // Handle delete response
   useEffect(() => {
-    console.log('Fetcher state:', fetcher.state)
-    console.log('Fetcher data:', JSON.stringify(fetcher.data))
-
     // Check if we have a successful response
     if (fetcher.data && typeof fetcher.data === 'object') {
       const data = fetcher.data as any
-      console.log('Checking success field:', data.success)
 
       if (data.success === true) {
-        console.log('Delete successful, navigating to /projects')
-        // Force navigation with a small delay to ensure state updates
-        setTimeout(() => {
-          window.location.href = '/projects'
-        }, 100)
+        // Navigate using React Router
+        navigate('/projects')
       } else if (data.error) {
-        console.log('Delete failed with error:', data.error)
         setError(data.error as string)
         setShowConfirmDelete(false)
       }
     }
-  }, [fetcher.data])
+  }, [fetcher.data, navigate])
 
   return (
     <>

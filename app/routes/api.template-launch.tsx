@@ -29,7 +29,7 @@ export const action = Route.action(function*() {
   const gel = yield* Gel.Client
   const settings = yield* Settings.Service
 
-  // Load and set the user's Railway token
+  // Load the user's Railway token
   const userSettings = yield* settings.read(user.githubId).pipe(
     Ef.catchAll(() => Ef.succeed({ railwayApiToken: null, theme: Settings.Theme.system })),
   )
@@ -38,14 +38,9 @@ export const action = Route.action(function*() {
     throw new Error('Railway API token not configured. Please add your token in Settings.')
   }
 
-  // Set the Railway token for this request
-  Railway.setToken(userSettings.railwayApiToken)
-
   // Get workspace ID (REQUIRED for template deployment)
   const workspaceId = yield* Ef.tryPromise({
     try: async () => {
-      console.log('Fetching Railway workspaces...')
-
       // First try to get the user's workspaces using the correct 'me' field
       // Note: workspaces returns a direct array, not a paginated connection
       const me = await railway.query.me({
@@ -55,25 +50,18 @@ export const action = Route.action(function*() {
         },
       })
 
-      // Log all workspaces for debugging
-      console.log('Railway API response:', JSON.stringify(me, null, 2))
-      console.log('Available workspaces:', me?.workspaces)
-
       // todo don't hardcard selection of workspace
       const workspace = me?.workspaces?.[0]
 
       if (!workspace) {
-        console.error('No workspace found. Full me response:', me)
         throw new Error(
           'No workspace found for this Railway account. Please ensure your Railway API token has access to at least one workspace.',
         )
       }
 
-      console.log('Using workspace:', workspace.name, workspace.id)
       return workspace.id
     },
     catch: (cause) => {
-      console.error('Failed to get workspace:', cause)
       return new Error(
         `Failed to get workspace from Railway API. Please check your Railway API token has proper permissions.`,
         { cause },
@@ -98,9 +86,6 @@ export const action = Route.action(function*() {
     },
   })
 
-  console.log('Found Railway template:', template)
-  console.log('Template serializedConfig:', JSON.stringify(template.serializedConfig, null, 2))
-
   // Step 1: Store template in database if it doesn't exist
   const existingTemplate = yield* Ef.tryPromise({
     try: () =>
@@ -123,10 +108,6 @@ export const action = Route.action(function*() {
   }
 
   // Step 2: Deploy template via Railway using V2 API
-  console.log('Deploying template using templateDeployV2')
-  console.log('Template ID:', template.id)
-  console.log('Workspace ID:', workspaceId)
-
   const deployment = yield* Ef.tryPromise({
     try: () =>
       railway.mutation.templateDeployV2({
@@ -152,12 +133,6 @@ export const action = Route.action(function*() {
       error: deployment.message,
     }, { status: 500 })
   }
-
-  // Store the workflowId for tracking
-  console.log('Template deployment started:')
-  console.log('- Project ID:', deployment.projectId)
-  console.log('- Workflow ID:', deployment.workflowId)
-  console.log('Check Railway dashboard for workflow status')
 
   // Step 3: Store project in database - just the reference data
   const project = yield* Ef.tryPromise({

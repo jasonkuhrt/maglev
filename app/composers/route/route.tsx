@@ -2,28 +2,12 @@ import { Config } from '#core/config'
 import { Gel } from '#core/gel'
 import { Session } from '#core/session'
 import { Settings } from '#core/settings'
-import { Ctx, Ef, type Ei, Lr } from '#deps/effect'
+import { Ctx, Ef, type Ei } from '#deps/effect'
 import { Efy } from '#lib/efy'
 import { Railway } from '#lib/railway'
 import { FileSystem } from '@effect/platform'
-import * as NodeFileSystem from '@effect/platform-node/NodeFileSystem'
 import * as React from 'react'
-
-// ================
-// RUNTIME
-// ================
-
-/**
- * Runtime for server components
- * Includes all layers including Node.js-specific ones
- * Note: Railway.ContextLive provided separately after Session is available
- */
-const ServerRuntime = Lr.mergeAll(
-  NodeFileSystem.layer,
-  Config.ConfigServiceLive,
-  Gel.ClientLive,
-  Settings.ServiceLive,
-)
+import { provideRouteServices } from './shared-runtime.js'
 
 // ================
 // TYPES
@@ -208,21 +192,14 @@ export const Server = <TLoaderData = unknown>(
 
     const requestInfo: Session.RequestInfoData = loaderData.request
 
-    // Always provide Session.RequestInfo
+    // Provide Session.RequestInfo (Server component specific)
     effect = effect.pipe(
       Ef.provideService(Session.RequestInfo, requestInfo),
     )
 
-    // Provide Session.Session service with user access methods
-    const sessionLayer = Session.SessionService.layer(requestInfo)
-
-    // Provide server runtime layers and convert to Either
-    // The provide operation satisfies all requirements, resulting in Effect<..., never, never>
+    // Provide all common route services and convert to Either
     const finalEffect = effect.pipe(
-      // First provide session and base runtime layers together
-      Ef.provide(Lr.mergeAll(ServerRuntime, sessionLayer)),
-      // Then provide Railway.ContextLive which depends on Session.Context
-      Ef.provide(Railway.ContextLive),
+      provideRouteServices(requestInfo),
       // Convert to Either to handle both success and failure
       Ef.either,
     ) as Ef.Effect<Ei.Either<React.ReactNode | undefined, any>, never, never>

@@ -2,21 +2,52 @@ import { Config } from '#core/config'
 import { Gel } from '#core/gel'
 import { Session } from '#core/session'
 import { Settings } from '#core/settings'
-import { Ef, Lr, ParseResult, Sc } from '#deps/effect'
+import { Ef, ParseResult, Sc } from '#deps/effect'
 import { Efy } from '#lib/efy'
 import { Railway } from '#lib/railway'
 import { FileSystem } from '@effect/platform'
-import * as NodeFileSystem from '@effect/platform-node/NodeFileSystem'
 import { Err } from '@wollybeard/kit'
 import { redirect } from 'react-router'
 import { Context, FormData, Params, Request } from './context.js'
+import { provideRouteServices } from './shared-runtime.js'
 
 // Re-export for backward compatibility
 export { Context, FormData, Params, Request }
 
 /**
- * Parse and validate request arguments with a schema
- * Automatically handles validation errors
+ * Parse and validate request arguments using an Effect Schema
+ *
+ * Automatically handles:
+ * - Form data parsing (multipart and URL-encoded)
+ * - JSON body parsing
+ * - Schema validation with detailed error messages
+ * - Multiple values for the same field (arrays)
+ *
+ * @template I The input type (raw form data)
+ * @template A The validated output type
+ * @param schema Effect Schema for validation
+ * @returns Effect that yields the validated data
+ *
+ * @example Basic form validation
+ * ```typescript
+ * const CreateProjectSchema = Sc.Struct({
+ *   projectName: Sc.String.pipe(
+ *     Sc.minLength(3),
+ *     Sc.maxLength(50),
+ *     Sc.pattern(/^[a-zA-Z0-9-_]+$/)
+ *   ),
+ *   templateId: Sc.String
+ * })
+ *
+ * export const action = Route.action(function*() {
+ *   const { projectName, templateId } = yield* Route.Args(CreateProjectSchema)
+ *   // Data is now validated and typed
+ * })
+ * ```
+ *
+ * @remarks
+ * - Returns 422 status with validation errors if validation fails
+ * - Handles both FormData and JSON request bodies automatically
  */
 export const Args = <I, A>(schema: Sc.Schema<A, I>) =>
   Ef.gen(function*() {
@@ -69,22 +100,6 @@ export const Args = <I, A>(schema: Sc.Schema<A, I>) =>
   })
 
 // ================
-// RUNTIME
-// ================
-
-/**
- * Runtime for actions
- * Includes all necessary service layers
- * Note: Railway.ContextLive provided separately after Session is available
- */
-const ActionRuntime = Lr.mergeAll(
-  NodeFileSystem.layer,
-  Config.ConfigServiceLive,
-  Gel.ClientLive,
-  Settings.ServiceLive,
-)
-
-// ================
 // TYPES
 // ================
 
@@ -100,7 +115,7 @@ type ActionFunction<A> = (args: ActionArgs) => Ef.Effect<A, any, any>
 // ================
 
 /**
- * Provides common route context services for actions
+ * Provides action-specific services and common route services
  */
 const provideActionContext = <R, E, A>(
   effect: Ef.Effect<A, E, R>,
@@ -114,6 +129,7 @@ const provideActionContext = <R, E, A>(
   }
 
   let pipeline = effect.pipe(
+    // Provide action-specific services
     Ef.provideService(Request, args.request),
     Ef.provideService(Params, args.params),
     Ef.provideService(Context, {
@@ -123,17 +139,14 @@ const provideActionContext = <R, E, A>(
     Ef.provideService(Session.RequestInfo, requestInfo),
   )
 
+  // FormData is action-specific (for Args helper)
   if (formDataService) {
     pipeline = pipeline.pipe(Ef.provideServiceEffect(FormData, formDataService))
   }
 
-  // Provide Session service layer
-  const sessionLayer = Session.SessionService.layer(requestInfo)
-
+  // Provide all common route services
   return pipeline.pipe(
-    Ef.provide(Lr.mergeAll(ActionRuntime, sessionLayer)),
-    // Provide Railway.ContextLive after Session is available
-    Ef.provide(Railway.ContextLive),
+    provideRouteServices(requestInfo),
   )
 }
 
@@ -142,7 +155,90 @@ const provideActionContext = <R, E, A>(
 // ================
 
 /**
- * Creates a React Router action with Effect runtime
+ * Creates a React Router action with full Effect runtime support
+ *
+ * Actions handle form submissions and mutations:
+ * - Process form data and JSON requests
+ * - Perform database updates
+ * - Call external APIs
+ * - Handle authentication and authorization
+ * - Return redirects or JSON responses
+ *
+ * @template A The type of data returned by the action
+ * @param fn Effect generator or Effect that processes the action
+ * @returns React Router action function
+ *
+ * @example Form submission with validation
+ * ```typescript
+ * const LaunchTemplateSchema = Sc.Struct({
+ *   templateId: Sc.String,
+ *   projectName: Sc.String.pipe(
+ *     Sc.minLength(3),
+ *     Sc.pattern(/^[a-zA-Z0-9-_]+$/)
+ *   )
+ * })
+ *
+ * export const action = Route.action(function*() {
+ *   const { templateId, projectName } = yield* Route.Args(LaunchTemplateSchema)
+ *   const session = yield* Session.Context
+ *   const user = yield* session.getUser()
+ *
+ *   const gel = yield* Gel.Client
+ *   const project = yield* Ef.tryPromise({
+ *     try: () => Gel.$.insert(Gel.$.Project, {
+ *       name: projectName,
+ *       templateId,
+ *       owner: user.id,
+ *       createdAt: new Date()
+ *     }).run(gel.client),
+ *     catch: (cause) => new Error('Failed to create project', { cause })
+ *   })
+ *
+ *   // Redirect to the new project
+ *   return redirect(`/projects/${project.id}`)
+ * })
+ * ```
+ *
+ * @example API endpoint returning JSON
+ * ```typescript
+ * export const action = Route.action(function*() {
+ *   const railway = yield* Railway.Context
+ *   const templates = yield* Ef.tryPromise({
+ *     try: () => railway.query.templates({ first: 10 }),
+ *     catch: (cause) => new Error('Failed to load templates', { cause })
+ *   })
+ *
+ *   // Return JSON response
+ *   return Response.json({ templates })
+ * })
+ * ```
+ *
+ * @example Delete operation with confirmation
+ * ```typescript
+ * export const action = Route.action(function*() {
+ *   const params = yield* Route.Params
+ *   const session = yield* Session.Context
+ *   yield* session.getUser() // Ensure authenticated
+ *
+ *   const gel = yield* Gel.Client
+ *   yield* Ef.tryPromise({
+ *     try: () => Gel.$.delete(Gel.$.Project, p => ({
+ *       filter_single: Gel.$.op(p.id, '=', Gel.$.uuid(params.id))
+ *     })).run(gel.client),
+ *     catch: (cause) => new Error('Failed to delete project', { cause })
+ *   })
+ *
+ *   // Redirect after deletion
+ *   return redirect('/projects')
+ * })
+ * ```
+ *
+ * @remarks
+ * - Automatically handles form data and JSON parsing
+ * - Errors are serialized and returned as JSON responses
+ * - Returns Response objects (redirects) or JSON-serializable data
+ * - Railway API tokens are loaded automatically if configured
+ * - Default behavior redirects to the same page after success
  */
 export const action = <A>(
   fn: Efy.EffectOrGen<

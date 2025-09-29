@@ -21,11 +21,6 @@ export const loader = Route.loader(function*() {
   const session = yield* Session.getSession(requestInfo)
 
   // Exchange code for access token
-  console.log('Exchanging code for token with:', {
-    client_id: import.meta.env['VITE_GITHUB_CLIENT_ID'],
-    code: code?.slice(0, 8) + '...',
-  })
-
   const tokenResponse = yield* Ef.tryPromise({
     try: () =>
       fetch('https://github.com/login/oauth/access_token', {
@@ -43,11 +38,8 @@ export const loader = Route.loader(function*() {
     catch: (cause) => new Error('Failed to exchange code for token', { cause }),
   })
 
-  console.log('Token response:', tokenResponse)
-
   const accessToken = tokenResponse.access_token
   if (!accessToken) {
-    console.error('GitHub OAuth error:', tokenResponse)
     throw new Response(
       `Failed to get access token: ${tokenResponse.error_description || tokenResponse.error || 'Unknown error'}`,
       { status: 500 },
@@ -68,8 +60,6 @@ export const loader = Route.loader(function*() {
 
   // Create or update user in database
   const gel = yield* Gel.Client
-  console.log('Creating/updating user in database...')
-  console.log('Client created:', !!gel.client)
 
   // First check if user exists
   const existingUser = yield* Ef.tryPromise({
@@ -86,7 +76,6 @@ export const loader = Route.loader(function*() {
   let user
   if (existingUser) {
     // Update existing user
-    console.log('Updating existing user:', existingUser.id)
     user = yield* Ef.tryPromise({
       try: () =>
         Gel.$.update(Gel.$.User, () => ({
@@ -100,7 +89,6 @@ export const loader = Route.loader(function*() {
     })
   } else {
     // Create new user
-    console.log('Creating new user')
     user = yield* Ef.tryPromise({
       try: () =>
         Gel.$.insert(Gel.$.User, {
@@ -119,12 +107,11 @@ export const loader = Route.loader(function*() {
   if (userId) {
     session.set('userId', userId)
   }
-  console.log('User logged in:', userId || 'created')
 
   // Commit session and get cookie
   const cookie = yield* Session.commitSession(session)
 
-  return redirect('/templates', {
+  return redirect('/projects', {
     headers: {
       'Set-Cookie': cookie,
     },

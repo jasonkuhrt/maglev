@@ -2,27 +2,13 @@ import { Config } from '#core/config'
 import { Gel } from '#core/gel'
 import { Session } from '#core/session'
 import { Settings } from '#core/settings'
-import { Ef, type Ei, Lr } from '#deps/effect'
+import { Ef, type Ei } from '#deps/effect'
 import { Efy } from '#lib/efy'
 import { Railway } from '#lib/railway'
 import { FileSystem } from '@effect/platform'
-import * as NodeFileSystem from '@effect/platform-node/NodeFileSystem'
 import { Err } from '@wollybeard/kit'
 import { Context, Params, Request } from './context.js'
-
-// ================
-// RUNTIME
-// ================
-
-/**
- * Runtime for loaders
- * Includes all necessary service layers
- */
-const LoaderRuntime = Lr.mergeAll(
-  NodeFileSystem.layer,
-  Config.ConfigServiceLive,
-  Settings.ServiceLive,
-)
+import { provideRouteServices } from './shared-runtime.js'
 
 // ================
 // TYPES
@@ -38,7 +24,7 @@ type LoaderArgs = {
 // ================
 
 /**
- * Provides common route context services for loaders
+ * Provides loader-specific services and common route services
  */
 const provideLoaderContext = <R, E, A>(
   effect: Ef.Effect<A, E, R>,
@@ -50,10 +36,8 @@ const provideLoaderContext = <R, E, A>(
     headers: Object.fromEntries(args.request.headers.entries()),
   }
 
-  // Provide Session service layer
-  const sessionLayer = Session.SessionService.layer(requestInfo)
-
   return effect.pipe(
+    // Provide loader-specific services
     Ef.provideService(Request, args.request),
     Ef.provideService(Params, args.params),
     Ef.provideService(Context, {
@@ -61,7 +45,8 @@ const provideLoaderContext = <R, E, A>(
       params: args.params,
     }),
     Ef.provideService(Session.RequestInfo, requestInfo),
-    Ef.provide(Lr.mergeAll(LoaderRuntime, sessionLayer, Gel.ClientLive)),
+    // Provide all common route services
+    provideRouteServices(requestInfo),
   )
 }
 
@@ -149,7 +134,8 @@ export const defaultLoader = async (args: LoaderArgs) => ({
  *
  * @remarks
  * - Always provides request info for ServerComponents automatically
- * - Railway API tokens are loaded automatically if user is authenticated
+ * - Railway API token is loaded automatically if user has configured it in settings
+ * - Railway.Context service is available for making Railway API calls
  * - Errors are serialized and passed to the route for error handling
  * - Returns can be Response objects (for redirects) or serializable data
  */
@@ -165,6 +151,7 @@ export const loader = <A = any>(
     | Settings.Service
     | Session.Context
     | Gel.Client
+    | Railway.Context
   >,
 ): (args: LoaderArgs) => Promise<A> => {
   return async (args: LoaderArgs) => {
@@ -184,8 +171,6 @@ export const loader = <A = any>(
       headers: Object.fromEntries(args.request.headers.entries()),
     }
 
-    const sessionLayer = Session.SessionService.layer(requestInfo)
-
     // Try to load and set Railway token
     await Ef.runPromise(
       Ef.gen(function*() {
@@ -203,7 +188,7 @@ export const loader = <A = any>(
           }
         }
       }).pipe(
-        Ef.provide(Lr.mergeAll(LoaderRuntime, sessionLayer, Gel.ClientLive)),
+        provideRouteServices(requestInfo),
         Ef.catchAll(() => Ef.succeed(null)), // Silently handle errors - token loading is optional
       ),
     )
