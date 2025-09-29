@@ -1,5 +1,6 @@
 'use client'
 
+import { ActionArrow } from '#components/action-arrow'
 import { styled } from '#styled-system/jsx'
 import React, { useState } from 'react'
 import { useFetcher, useNavigate } from 'react-router'
@@ -202,26 +203,7 @@ export const TemplateCard = ({ template, services, githubRepos }: Props) => {
               </styled.div>
             </fetcher.Form>
           )
-          : (
-            <styled.div
-              display='flex'
-              alignItems='center'
-              fontSize='sm'
-              fontWeight='700'
-              letterSpacing='0.05em'
-              textTransform='uppercase'
-            >
-              Deploy
-              <styled.span
-                data-arrow
-                ml='8px'
-                display='inline-block'
-                transition='transform 0.15s'
-              >
-                →
-              </styled.span>
-            </styled.div>
-          )}
+          : <ActionArrow text='Deploy' />}
       </styled.div>
     </styled.article>
   )

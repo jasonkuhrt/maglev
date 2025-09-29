@@ -1,5 +1,8 @@
 import { ProjectActions } from '#blocks/project-actions'
+import { ExternalLink } from '#components/external-link'
+import { InfoRow } from '#components/info-row'
 import { PageLayout } from '#components/page-layout'
+import { StatusIndicator } from '#components/status-indicator'
 import { Heading } from '#components/typography'
 import { Route } from '#composers/route'
 import { Gel } from '#core/gel'
@@ -7,7 +10,7 @@ import { Session } from '#core/session'
 import { Ef } from '#deps/effect.js'
 import { Railway } from '#lib/railway'
 import { styled } from '#styled-system/jsx'
-import { Activity, ArrowLeft, Calendar, ExternalLink as ExternalLinkIcon, Globe, Layout } from 'lucide-react'
+import { Activity, ArrowLeft, Calendar, Globe, Layout } from 'lucide-react'
 import { Link } from 'react-router'
 
 export const loader = Route.loader()
@@ -206,236 +209,71 @@ export const ServerComponent = Route.Server(function*() {
         mb='24px'
       >
         {/* Status */}
-        <styled.div
-          mb='24px'
-          pb='24px'
-          borderBottom='1px solid black'
-          display='grid'
-          gridTemplateColumns='1fr 2fr'
-          alignItems='center'
-        >
-          <styled.div display='flex' alignItems='center' gap='8px'>
-            <Activity size={14} strokeWidth={2} style={{ opacity: 0.7 }} />
-            <styled.label
-              fontSize='xs'
-              fontWeight='700'
-              letterSpacing='0.08em'
-              textTransform='uppercase'
-              color='black'
-            >
-              Status
-            </styled.label>
-          </styled.div>
-          <styled.div display='flex' alignItems='center' gap='8px'>
-            {status === 'active' && (
-              <styled.span
-                display='inline-block'
-                w='8px'
-                h='8px'
-                borderRadius='50%'
-                bg='green.500'
-              />
-            )}
-            {status === 'deploying' && (
-              <styled.span
-                display='inline-block'
-                w='8px'
-                h='8px'
-                borderRadius='50%'
-                bg='yellow.500'
-              />
-            )}
-            {status === 'failed' && (
-              <styled.span
-                display='inline-block'
-                w='8px'
-                h='8px'
-                borderRadius='50%'
-                bg='red.500'
-              />
-            )}
-            {status === 'unknown' && (
-              <styled.span
-                display='inline-block'
-                w='8px'
-                h='8px'
-                borderRadius='50%'
-                bg='gray.400'
-              />
-            )}
-            <styled.span
-              fontSize='md'
-              fontWeight='400'
-              textTransform='uppercase'
-              color='black'
-            >
-              {status}
-            </styled.span>
-          </styled.div>
-        </styled.div>
+        <InfoRow
+          icon={<Activity size={14} strokeWidth={2} style={{ opacity: 0.7 }} />}
+          label='Status'
+          value={<StatusIndicator status={status} />}
+        />
 
         {/* Deployment URL */}
         {deploymentUrl && (
-          <styled.div
-            mb='24px'
-            pb='24px'
-            borderBottom='1px solid black'
-            display='grid'
-            gridTemplateColumns='1fr 2fr'
-            alignItems='center'
-          >
-            <styled.div display='flex' alignItems='center' gap='8px'>
-              <Globe size={14} strokeWidth={2} style={{ opacity: 0.7 }} />
-              <styled.label
-                fontSize='xs'
-                fontWeight='700'
-                letterSpacing='0.08em'
-                textTransform='uppercase'
-                color='black'
-              >
-                Deployment URL
-              </styled.label>
-            </styled.div>
-            <styled.a
-              href={deploymentUrl}
-              target='_blank'
-              display='inline-flex'
-              alignItems='center'
-              gap='6px'
-              fontSize='md'
-              fontWeight='400'
-              color='black'
-              borderBottom='1px dashed black'
-              textDecoration='none'
-              pb='1px'
-              _hover={{
-                borderBottom: '1px solid black',
-              }}
-            >
-              {deploymentUrl}
-              <ExternalLinkIcon size={12} strokeWidth={2} />
-            </styled.a>
-          </styled.div>
+          <InfoRow
+            icon={<Globe size={14} strokeWidth={2} style={{ opacity: 0.7 }} />}
+            label='Deployment URL'
+            value={<ExternalLink href={deploymentUrl}>{deploymentUrl}</ExternalLink>}
+          />
         )}
 
         {/* Railway Dashboard */}
         {project.railwayProjectId && (
-          <styled.div
-            mb='24px'
-            pb='24px'
-            borderBottom='1px solid black'
-            display='grid'
-            gridTemplateColumns='1fr 2fr'
-            alignItems='center'
-          >
-            <styled.div display='flex' alignItems='center' gap='8px'>
-              <Layout size={14} strokeWidth={2} style={{ opacity: 0.7 }} />
-              <styled.label
-                fontSize='xs'
-                fontWeight='700'
-                letterSpacing='0.08em'
-                textTransform='uppercase'
-                color='black'
-              >
-                Railway Dashboard
-              </styled.label>
-            </styled.div>
-            <styled.a
-              href={`https://railway.app/project/${project.railwayProjectId}`}
-              target='_blank'
-              rel='noopener noreferrer'
-              display='inline-flex'
-              alignItems='center'
-              gap='6px'
-              fontSize='md'
-              fontWeight='400'
-              color='black'
-              borderBottom='1px dashed black'
-              textDecoration='none'
-              pb='1px'
-              _hover={{
-                borderBottom: '1px solid black',
-              }}
-            >
-              View on Railway
-              <ExternalLinkIcon size={12} strokeWidth={2} />
-            </styled.a>
-          </styled.div>
+          <InfoRow
+            icon={<Layout size={14} strokeWidth={2} style={{ opacity: 0.7 }} />}
+            label='Railway Dashboard'
+            value={
+              <ExternalLink href={`https://railway.app/project/${project.railwayProjectId}`}>
+                View on Railway
+              </ExternalLink>
+            }
+          />
         )}
 
         {/* Template */}
         {project.template && (project.template as any).name && (
-          <styled.div
-            mb='24px'
-            pb='24px'
-            borderBottom='1px solid black'
-            display='grid'
-            gridTemplateColumns='1fr 2fr'
-            alignItems='center'
-          >
-            <styled.div display='flex' alignItems='center' gap='8px'>
-              <Layout size={14} strokeWidth={2} style={{ opacity: 0.7 }} />
-              <styled.label
-                fontSize='xs'
-                fontWeight='700'
-                letterSpacing='0.08em'
-                textTransform='uppercase'
-                color='black'
-              >
-                Template
-              </styled.label>
-            </styled.div>
-            <styled.span fontSize='md' fontWeight='400'>
-              {(project.template as any).name}
-            </styled.span>
-          </styled.div>
+          <InfoRow
+            icon={<Layout size={14} strokeWidth={2} style={{ opacity: 0.7 }} />}
+            label='Template'
+            value={
+              <styled.span fontSize='md' fontWeight='400'>
+                {(project.template as any).name}
+              </styled.span>
+            }
+          />
         )}
 
         {/* Created */}
-        <styled.div display='grid' gridTemplateColumns='1fr 2fr' alignItems='center'>
-          <styled.div display='flex' alignItems='center' gap='8px'>
-            <Calendar size={14} strokeWidth={2} style={{ opacity: 0.7 }} />
-            <styled.label
-              fontSize='xs'
-              fontWeight='700'
-              letterSpacing='0.08em'
-              textTransform='uppercase'
-              color='black'
-            >
-              Created
-            </styled.label>
-          </styled.div>
-          <styled.span fontSize='md' fontWeight='400'>
-            {new Date(project.createdAt).toLocaleString()}
-          </styled.span>
-        </styled.div>
+        <InfoRow
+          icon={<Calendar size={14} strokeWidth={2} style={{ opacity: 0.7 }} />}
+          label='Created'
+          value={
+            <styled.span fontSize='md' fontWeight='400'>
+              {new Date(project.createdAt).toLocaleString()}
+            </styled.span>
+          }
+          isLast={!railwayData || !railwayData.services?.edges?.length}
+        />
 
         {/* Show service count if available */}
         {railwayData && railwayData.services?.edges?.length > 0 && (
-          <styled.div
-            mt='24px'
-            pt='24px'
-            borderTop='1px solid black'
-            display='grid'
-            gridTemplateColumns='1fr 2fr'
-            alignItems='center'
-          >
-            <styled.div display='flex' alignItems='center' gap='8px'>
-              <Layout size={14} strokeWidth={2} style={{ opacity: 0.7 }} />
-              <styled.label
-                fontSize='xs'
-                fontWeight='700'
-                letterSpacing='0.08em'
-                textTransform='uppercase'
-                color='black'
-              >
-                Services
-              </styled.label>
-            </styled.div>
-            <styled.span fontSize='md' fontWeight='400'>
-              {railwayData.services.edges.map(s => s.node.name).join(', ')}
-            </styled.span>
-          </styled.div>
+          <InfoRow
+            icon={<Layout size={14} strokeWidth={2} style={{ opacity: 0.7 }} />}
+            label='Services'
+            value={
+              <styled.span fontSize='md' fontWeight='400'>
+                {railwayData.services.edges.map(s => s.node.name).join(', ')}
+              </styled.span>
+            }
+            isLast
+          />
         )}
       </styled.div>
 

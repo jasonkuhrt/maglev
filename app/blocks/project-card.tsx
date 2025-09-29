@@ -1,5 +1,7 @@
 'use client'
 
+import { ActionArrow } from '#components/action-arrow'
+import { StatusIndicator } from '#components/status-indicator'
 import { styled } from '#styled-system/jsx'
 import { Link } from 'react-router'
 
@@ -82,40 +84,8 @@ export const ProjectCard = ({ project }: Props) => {
               letterSpacing='0.08em'
               textTransform='uppercase'
               mb='4px'
-              display='flex'
-              alignItems='center'
-              gap='6px'
             >
-              {project.status === 'active' && (
-                <styled.span
-                  display='inline-block'
-                  w='6px'
-                  h='6px'
-                  borderRadius='50%'
-                  bg='green.500'
-                />
-              )}
-              {project.status === 'deploying' && (
-                <styled.span
-                  display='inline-block'
-                  w='6px'
-                  h='6px'
-                  borderRadius='50%'
-                  bg='yellow.500'
-                />
-              )}
-              {project.status === 'failed' && (
-                <styled.span
-                  display='inline-block'
-                  w='6px'
-                  h='6px'
-                  borderRadius='50%'
-                  bg='red.500'
-                />
-              )}
-              <styled.span>
-                {project.status}
-              </styled.span>
+              <StatusIndicator status={project.status} size='sm' />
             </styled.div>
 
             {/* Date */}
@@ -128,24 +98,7 @@ export const ProjectCard = ({ project }: Props) => {
           </styled.div>
 
           {/* Open Action */}
-          <styled.div
-            display='flex'
-            alignItems='center'
-            fontSize='sm'
-            fontWeight='700'
-            letterSpacing='0.05em'
-            textTransform='uppercase'
-          >
-            Open
-            <styled.span
-              data-arrow
-              ml='8px'
-              display='inline-block'
-              transition='transform 0.15s'
-            >
-              →
-            </styled.span>
-          </styled.div>
+          <ActionArrow text='Open' />
         </styled.div>
       </styled.article>
     </Link>

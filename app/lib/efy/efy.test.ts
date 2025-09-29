@@ -25,7 +25,7 @@ describe('.normalizeGenOrEffect', () => {
     const result = Efy.normalizeGenOrEffect(gen)
 
     // Runtime assertion
-    expect(await Ef.runPromise(result)).toBe(20)
+    expect(await Ef.runPromise(result as Ef.Effect<number, unknown, never>)).toBe(20)
 
     // Type assertion - generator function returns Effect with unknown for E and R
     Ts.assert<Ef.Effect<number, unknown, unknown>>()(result as any)
@@ -40,10 +40,10 @@ describe('.normalizeGenOrEffect', () => {
     const result = Efy.normalizeGenOrEffect(gen)
 
     // Runtime assertion
-    expect(await Ef.runPromise(result)).toBe(15)
+    expect(await Ef.runPromise(result as Ef.Effect<number, unknown, never>)).toBe(15)
 
-    // Type assertion - generator function returns Effect with never for E and R
-    Ts.assert<Ef.Effect<number, never, never>>()(result as any)
+    // Type assertion - generator function returns Effect with unknown for E and R
+    Ts.assert<Ef.Effect<number, unknown, unknown>>()(result as any)
   })
 
   test('handles generator functions with error Effects', async () => {
@@ -54,10 +54,10 @@ describe('.normalizeGenOrEffect', () => {
     const result = Efy.normalizeGenOrEffect(gen)
 
     // Runtime assertion
-    await expect(Ef.runPromise(result)).rejects.toThrow('test error')
+    await expect(Ef.runPromise(result as Ef.Effect<string, unknown, never>)).rejects.toThrow('test error')
 
-    // Type assertion - generator function returns Effect with never for E and R
-    Ts.assert<Ef.Effect<string, never, never>>()(result as any)
+    // Type assertion - generator function returns Effect with unknown for E and R
+    Ts.assert<Ef.Effect<string, unknown, unknown>>()(result as any)
   })
 
   test('handles complex types', async () => {
@@ -78,8 +78,8 @@ describe('.normalizeGenOrEffect', () => {
       return yield* Ef.succeed(user)
     }
     const genResult = Efy.normalizeGenOrEffect(gen)
-    expect(await Ef.runPromise(genResult)).toEqual(user)
-    Ts.assert<Ef.Effect<User, never, never>>()(genResult as any)
+    expect(await Ef.runPromise(genResult as Ef.Effect<User, unknown, never>)).toEqual(user)
+    Ts.assert<Ef.Effect<User, unknown, unknown>>()(genResult as any)
   })
 
   test('converts sync vanilla function to Effect', async () => {
@@ -114,7 +114,7 @@ describe('.normalizeGenOrEffect', () => {
     const result = Efy.normalizeGenOrEffect(fn)
 
     // Runtime assertion
-    await expect(Ef.runPromise(result)).rejects.toThrow('sync error')
+    await expect(Ef.runPromise(result as Ef.Effect<never, unknown, never>)).rejects.toThrow('sync error')
   })
 
   test('handles async functions that reject', async () => {
@@ -179,7 +179,7 @@ describe('.normalizeGenOrEffect', () => {
       return (yield* Ef.succeed(42))
     }
     const numResult = Efy.normalizeGenOrEffect(numGen)
-    Ts.assert<Ef.Effect<number, never, never>>()(numResult as any)
+    Ts.assert<Ef.Effect<number, unknown, unknown>>()(numResult as any)
 
     // Boolean effect
     const boolEffect = Ef.succeed(true)

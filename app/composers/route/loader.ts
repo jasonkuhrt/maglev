@@ -222,7 +222,7 @@ export const loader = <A = any>(
       }).pipe(
         provideRouteServices(requestInfo),
         Ef.catchAll(() => Ef.succeed(null)), // Silently handle errors - token loading is optional
-      ),
+      ) as Ef.Effect<null, never, never>,
     )
 
     // If no function provided, return just the default data
